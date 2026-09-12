@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GoLookLike</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- VIEW 0: Splash Screen Animata & Loader Sessione -->
+  <div id="view-splash" class="view-container active splash-bg">
+    <div id="splash-content">
+      <h1 id="splash-text">GLL</h1>
+      <p id="session-loader" style="display:none; color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 20px;">
+        Sincronizzazione armadio...
+      </p>
+    </div>
+    <div id="particles-container"></div>
+  </div>
+
+  <!-- VIEW 1: Login -->
+  <div id="view-login" class="view-container">
+    <div class="glass-card">
+      <h2 class="brand-title">GoLookLike</h2>
+      <p class="subtitle">Il tuo stile, guidato dai dati.</p>
+      <input type="email" id="email-input" placeholder="es. nome@email.com" required>
+      <button id="btn-send-otp" class="primary-btn">Ricevi Codice OTP</button>
+    </div>
+  </div>
+
+  <!-- VIEW 2: OTP -->
+  <div id="view-otp" class="view-container">
+    <div class="glass-card">
+      <h2>Verifica Identità</h2>
+      <p class="subtitle">Codice inviato a: <strong id="otp-email-display"></strong></p>
+      <input type="number" id="otp-input" placeholder="123456" maxlength="6">
+      <button id="btn-verify-otp" class="primary-btn">Entra nell'Armadio</button>
+    </div>
+  </div>
+
+  <!-- VIEW 3: Onboarding -->
+  <div id="view-onboarding" class="view-container">
+    <div class="glass-card onboarding-container">
+      <h2>Popola l'Armadio</h2>
+      <p class="subtitle">Swipe a destra se lo possiedi, a sinistra per scartare.</p>
+      <div id="swipe-deck" class="deck"></div>
+      <div class="swipe-controls">
+        <button id="btn-reject" class="control-btn reject">✕</button>
+        <button id="btn-skip-onboarding" class="text-btn">Salta Onboarding</button>
+        <button id="btn-accept" class="control-btn accept">❤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: Dashboard -->
+  <div id="view-dashboard" class="view-container">
+    <div class="glass-card">
+      <h2 class="brand-title">GoLookLike</h2>
+      <p id="wardrobe-count" class="subtitle">Capi salvati: 0</p>
+      <button id="btn-generate-outfit" class="primary-btn magic-btn">✨ Genera Outfit</button>
+    </div>
+  </div>
+
+  <!-- Script in ordine logico di dipendenza -->
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
