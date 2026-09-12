@@ -1,6 +1,6 @@
 /**
  * GoLookLike - Core Application Javascript
- * Implementa: Toast Design a Pillola, Animazioni Swipe globali, 
+ * Implementa: Toast Design Infallibile, Animazioni Preferiti In-Card, 
  * Decluttering, Accessori Freddo Intelligenti, Note Libere e Tema Scuro.
  */
 
@@ -8,8 +8,15 @@
 // 0. SISTEMA NOTIFICHE IN-APP (TOAST PILL)
 // ==========================================
 window.showToast = function(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
+  // Se il container non esiste (per qualsiasi motivo DOM), lo creo al volo
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  
   const toast = document.createElement('div');
   
   let icon = 'ℹ️';
@@ -128,7 +135,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Aggiunti Accessori Invernali (pos: 'accessory')
 const generatorData = {
   tipologie: [ 
     { emoji: '👕', nome: 'T-shirt basica', pos: 'top', pesantezza: 1 }, { emoji: '👕', nome: 'T-shirt lunghe', pos: 'top', pesantezza: 2 }, { emoji: '👔', nome: 'Camicia sartoriale', pos: 'top', pesantezza: 1 }, { emoji: '🧥', nome: 'Maglia dolcevita', pos: 'top', pesantezza: 3 }, { emoji: '🧥', nome: 'Felpa Hoodie', pos: 'top', pesantezza: 2 }, { emoji: '👖', nome: 'Jeans straight', pos: 'bottom', pesantezza: 2 }, { emoji: '👖', nome: 'Pantalone Chino', pos: 'bottom', pesantezza: 2 }, { emoji: '🩳', nome: 'Bermuda', pos: 'bottom', pesantezza: 1 }, { emoji: '🧥', nome: 'Giacca di pelle', pos: 'top', pesantezza: 3 }, { emoji: '🧥', nome: 'Piumino', pos: 'top', pesantezza: 4 }, { emoji: '👟', nome: 'Sneakers', pos: 'shoes', pesantezza: 2 }, { emoji: '🥾', nome: 'Anfibi', pos: 'shoes', pesantezza: 3 },
@@ -187,7 +193,10 @@ async function saveSwipedItem(accepted) {
     if (feedback) { feedback.innerHTML = '❤️'; feedback.className = 'swipe-feedback show-accept'; setTimeout(() => feedback.className = 'swipe-feedback', 600); }
     currentCardElement.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`; currentCardElement.style.opacity = '0';
     appState.wardrobe.push(appState.currentCardItem); markItemAsSeen(appState.currentCardItem.hash);
+    
     await syncWardrobeToCloud();
+    window.showToast("Capo aggiunto all'armadio! 🧥", "success"); // Notifica corretta inserita
+    
   } else if (currentCardElement) {
     if (feedback) { feedback.innerHTML = '✕'; feedback.className = 'swipe-feedback show-reject'; setTimeout(() => feedback.className = 'swipe-feedback', 600); }
     currentCardElement.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`; currentCardElement.style.opacity = '0';
@@ -219,7 +228,7 @@ async function fetchRealWeather(lat, lon, isSilent = false) {
   } catch (e) { appState.weather.temp = 18; const tempEl = document.getElementById('weather-temp'); if(tempEl) tempEl.innerText = `18°C`; if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800); }
 }
 
-// DASHBOARD, MODIFICA E DECLUTTERING (Elimina)
+// DASHBOARD E ARMADIO
 document.getElementById('filter-all')?.addEventListener('click', (e) => { document.getElementById('filter-favs').classList.remove('active'); e.target.classList.add('active'); appState.filterMode = 'all'; renderWardrobe(); });
 document.getElementById('filter-favs')?.addEventListener('click', (e) => { document.getElementById('filter-all').classList.remove('active'); e.target.classList.add('active'); appState.filterMode = 'favs'; renderWardrobe(); });
 
@@ -235,8 +244,36 @@ function renderWardrobe() {
     const el = document.createElement('div'); el.className = 't-card grid-item'; el.style.backgroundColor = item.colore_hex; el.style.setProperty('--rarity-color', brandInfo.colorVar); el.style.setProperty('--rarity-glow', brandInfo.glowVar);
     el.innerHTML = generateCardHTML(item, true);
     
+    // Logica Cuore Preferiti con Animazione NATIVA
     const favBtn = el.querySelector('.fav-btn');
-    if(favBtn) { favBtn.addEventListener('click', async (e) => { e.stopPropagation(); item.is_favorite = !item.is_favorite; await syncWardrobeToCloud(); renderWardrobe(); }); }
+    if(favBtn) {
+      favBtn.addEventListener('click', async (e) => { 
+        e.stopPropagation(); 
+        item.is_favorite = !item.is_favorite; 
+        
+        // 1. Aggiorna visivamente il bottone senza ricaricare l'intera griglia
+        favBtn.innerHTML = item.is_favorite ? '❤️' : '🤍';
+        favBtn.classList.add('pop-anim');
+        setTimeout(() => favBtn.classList.remove('pop-anim'), 300);
+
+        // 2. Mostra Notifica
+        if (item.is_favorite) {
+            window.showToast("Aggiunto ai Preferiti", "success");
+        } else {
+            window.showToast("Rimosso dai Preferiti", "info");
+        }
+
+        // 3. Salva dati in background
+        await syncWardrobeToCloud(); 
+
+        // 4. Se siamo nella tab Preferiti e abbiamo rimosso il cuore, fai svanire la carta e ri-renderizza
+        if (appState.filterMode === 'favs' && !item.is_favorite) {
+            el.style.opacity = '0';
+            el.style.transform = 'scale(0.8)';
+            setTimeout(() => renderWardrobe(), 300);
+        }
+      });
+    }
 
     el.addEventListener('click', () => { 
       appState.itemToEditId = item.id; 

@@ -157,7 +157,6 @@
       <h2 class="brand-title">GoLike</h2>
       <p class="subtitle">Scopri e aggiungi nuovi capi al tuo stile.</p>
       
-      <!-- Contenitore Carte Dinamico -->
       <div id="swipe-deck" class="deck"></div>
       
       <div class="swipe-controls">
@@ -208,7 +207,7 @@
     </div>
   </div>
 
-  <!-- Componenti Wizard (Con Tasto Exit) -->
+  <!-- Componenti Wizard -->
   <div id="view-loading" class="view-container">
     <div class="loading-wrapper">
       <div class="spinner-pulse"></div>
@@ -248,10 +247,7 @@
       <button class="btn-close-wizard" onclick="exitWizard()">✕</button>
       <h2>Il tuo Outfit</h2>
       <p class="subtitle" id="match-context-desc">Ottimizzato per il tuo contesto</p>
-      
-      <!-- Contenitore Scrollabile per i vestiti suggeriti -->
       <div id="outfit-stack" class="outfit-stack"></div>
-      
       <p style="font-size: 12px; color: var(--secondary-text); margin-top: 15px; font-weight: 600;">
         ↔️ Swipe su un singolo capo per cambiarlo
       </p>
@@ -262,7 +258,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar PWA -->
+  <!-- Bottom Navigation Bar -->
   <nav class="bottom-nav" id="bottom-nav" style="display: none;">
     <button class="nav-item active" data-target="view-home" onclick="switchTab(this, 'view-home')">
       <span style="font-size: 20px; margin-bottom: 2px;">✨</span>Home
