@@ -39,7 +39,6 @@ function handleVerifyOTP(data) {
     if (row[0] === data.email && row[1].toString() === data.otp.toString()) {
       if (now > parseInt(row[2])) throw new Error("Codice OTP scaduto");
       
-      // Se è una registrazione, salva i dati nel foglio Users
       if (data.isRegistering) {
         const usersSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Users') || SpreadsheetApp.openById(SPREADSHEET_ID).insertSheet('Users');
         usersSheet.appendRow([data.email, data.nome, data.cognome, data.sesso, new Date()]);

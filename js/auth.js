@@ -1,6 +1,5 @@
 let isRegistrationMode = false;
 
-// Gestione Tabs Registrazione/Accesso
 document.getElementById('tab-login')?.addEventListener('click', (e) => {
   isRegistrationMode = false;
   e.target.classList.add('active');
@@ -51,7 +50,6 @@ document.getElementById('btn-send-otp')?.addEventListener('click', async () => {
     if (!payload.nome || !payload.cognome || !payload.sesso) {
       return alert("Compila tutti i campi di registrazione.");
     }
-    // Salva temporaneamente per l'OTP
     localStorage.setItem('gll_temp_user', JSON.stringify(payload));
   }
 
@@ -85,7 +83,7 @@ document.getElementById('btn-verify-otp')?.addEventListener('click', async () =>
     const res = await apiCall('verifyOTP', payload);
     if (res.status === 'success') { 
       localStorage.setItem('gll_session_token', res.data.token);
-      localStorage.setItem('gll_user_name', res.data.nome); // Salva il nome per la dashboard
+      localStorage.setItem('gll_user_name', res.data.nome); 
       initCoreApp(); 
     } else { 
       alert("Codice errato o scaduto."); 
@@ -94,7 +92,6 @@ document.getElementById('btn-verify-otp')?.addEventListener('click', async () =>
   finally { btn.innerText = "Entra nell'Armadio"; btn.disabled = false; }
 });
 
-// Mock Backend per test immediato
 function mockApiCall(action, payload) {
   return new Promise((resolve) => {
     setTimeout(() => {
