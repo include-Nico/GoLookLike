@@ -11,10 +11,8 @@
 </head>
 <body>
   
-  <!-- Datalist per Autocompletamento Brand -->
   <datalist id="brands-list"></datalist>
 
-  <!-- Modal Modifica Capo -->
   <div id="modal-edit" class="modal-overlay">
     <div class="glass-card modal-content">
       <h3 style="margin-top:0;">Modifica Capo</h3>
@@ -31,7 +29,6 @@
     </div>
   </div>
 
-  <!-- VIEW 0: Splash Screen Animata -->
   <div id="view-splash" class="view-container active splash-bg">
     <div id="splash-content">
       <h1 id="splash-text">GLL</h1>
@@ -40,14 +37,34 @@
     <div id="particles-container"></div>
   </div>
 
-  <!-- VIEW 1 & 2: Auth -->
+  <!-- AUTH VIEW UPDATE: Accesso e Registrazione -->
   <div id="view-login" class="view-container">
-    <div class="glass-card">
-      <h2 class="brand-title">GoLookLike</h2>
+    <div class="glass-card" style="padding-top: 20px;">
+      <h2 class="brand-title" style="margin-bottom: 20px;">GoLookLike</h2>
+      
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active">Accedi</button>
+        <button id="tab-register" class="auth-tab">Registrati</button>
+      </div>
+
+      <div id="register-fields" style="display: none;">
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="nome-input" placeholder="es. Nicolò">
+          <input type="text" id="cognome-input" placeholder="es. Troiano">
+        </div>
+        <select id="sesso-input" class="glass-select">
+          <option value="" disabled selected>Seleziona il tuo sesso</option>
+          <option value="Uomo">Uomo</option>
+          <option value="Donna">Donna</option>
+          <option value="Unisex">Altro / Unisex</option>
+        </select>
+      </div>
+      
       <input type="email" id="email-input" placeholder="es. nome@email.com" required>
       <button id="btn-send-otp" class="primary-btn">Ricevi Codice OTP</button>
     </div>
   </div>
+
   <div id="view-otp" class="view-container">
     <div class="glass-card">
       <h2>Verifica Identità</h2>
@@ -57,7 +74,6 @@
     </div>
   </div>
 
-  <!-- VIEW 3: Onboarding -->
   <div id="view-onboarding" class="view-container">
     <div class="glass-card onboarding-container">
       <h2>Popola l'Armadio</h2>
@@ -71,10 +87,9 @@
     </div>
   </div>
 
-  <!-- VIEW 4: HOME MINIMAL -->
   <div id="view-home" class="view-container">
     <div class="home-minimal">
-      <h1 class="greeting">Ciao Nicolò.</h1>
+      <h1 class="greeting" id="home-greeting">Ciao.</h1>
       <div id="weather-widget" class="weather-minimal">
         <span id="weather-temp">--°C</span>
         <span id="weather-desc" style="font-size: 16px; opacity: 0.8; display: block;">Rilevamento meteo...</span>
@@ -84,7 +99,6 @@
     </div>
   </div>
 
-  <!-- VIEW 4.5: DASHBOARD ARMADIO -->
   <div id="view-dashboard" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
     <h2 class="brand-title">Il tuo Armadio</h2>
     <p id="wardrobe-count" class="subtitle">Capi salvati: 0</p>
@@ -92,11 +106,11 @@
     <button id="btn-back-home" class="primary-btn" style="margin-top: 20px; max-width: 400px;">Torna alla Home</button>
   </div>
 
-  <!-- VIEW 5, 6, 7, 8: Wizard e Match (Invariate) -->
   <div id="view-loading" class="view-container">
     <div class="loading-wrapper">
       <div class="spinner-pulse"></div>
-      <h3 style="margin-top: 30px;">Analisi Meteo...</h3>
+      <h3 style="margin-top: 30px;">Analisi Cromatica...</h3>
+      <p class="subtitle" style="color: #636e72;">Incrociando temperature e armocromia</p>
     </div>
   </div>
 
@@ -105,9 +119,9 @@
       <h2 style="margin-bottom: 25px;">Dove andiamo?</h2>
       <div class="grid-options">
         <button class="context-btn" data-context="Politecnico">📚<br>Politecnico</button>
-        <button class="context-btn" data-context="Moto">🏍️<br>Vitpilen</button>
-        <button class="context-btn" data-context="Sport">🥋<br>Sparring / MMA</button>
-        <button class="context-btn" data-context="Serata">🍻<br>Uscita Serale</button>
+        <button class="context-btn" data-context="Lavoro">💼<br>Lavoro</button>
+        <button class="context-btn" data-context="Sport">🥋<br>Sport / Moto</button>
+        <button class="context-btn" data-context="Serata">🍻<br>Serata</button>
       </div>
     </div>
   </div>
@@ -129,8 +143,11 @@
       <h2>Il tuo Outfit</h2>
       <p class="subtitle" id="match-context-desc">Ottimizzato per il tuo contesto</p>
       <div id="outfit-stack" class="outfit-stack"></div>
-      <div class="swipe-controls" style="margin-top: 30px;">
-        <button id="btn-reset-match" class="text-btn">Rifai</button>
+      <p style="font-size: 12px; color: var(--secondary-text); margin-top: 15px; font-weight: 600;">
+        ↔️ Swipe su un singolo capo per cambiarlo
+      </p>
+      <div class="swipe-controls" style="margin-top: 15px;">
+        <button id="btn-reset-match" class="text-btn">Rifai Tutto</button>
         <button id="btn-confirm-outfit" class="primary-btn" style="width: auto; padding: 15px 40px;">Indossa</button>
       </div>
     </div>

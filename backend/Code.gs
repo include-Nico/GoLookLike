@@ -8,7 +8,7 @@ function doPost(e) {
 
     switch (action) {
       case 'sendOTP': result = handleSendOTP(data.email); break;
-      case 'verifyOTP': result = handleVerifyOTP(data.email, data.otp); break;
+      case 'verifyOTP': result = handleVerifyOTP(data); break;
       case 'checkSession': result = handleCheckSession(data.token); break;
       case 'saveItem': result = handleSaveItem(data.item); break;
       default: throw new Error("Azione non riconosciuta");
@@ -29,28 +29,36 @@ function handleSendOTP(email) {
   return { message: "OTP inviato con successo" };
 }
 
-function handleVerifyOTP(email, otpCode) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('OTP_Sessions');
-  const data = sheet.getDataRange().getValues();
+function handleVerifyOTP(data) {
+  const sheetOTP = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('OTP_Sessions');
+  const rowsOTP = sheetOTP.getDataRange().getValues();
   const now = new Date().getTime();
-  for (let i = data.length - 1; i >= 1; i--) {
-    let row = data[i];
-    if (row[0] === email && row[1].toString() === otpCode.toString()) {
+  
+  for (let i = rowsOTP.length - 1; i >= 1; i--) {
+    let row = rowsOTP[i];
+    if (row[0] === data.email && row[1].toString() === data.otp.toString()) {
       if (now > parseInt(row[2])) throw new Error("Codice OTP scaduto");
-      return createSessionToken(email);
+      
+      // Se è una registrazione, salva i dati nel foglio Users
+      if (data.isRegistering) {
+        const usersSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Users') || SpreadsheetApp.openById(SPREADSHEET_ID).insertSheet('Users');
+        usersSheet.appendRow([data.email, data.nome, data.cognome, data.sesso, new Date()]);
+      }
+      
+      return createSessionToken(data.email, data.nome);
     }
   }
   throw new Error("Codice OTP non valido");
 }
 
-function createSessionToken(email) {
+function createSessionToken(email, nome) {
   const rawToken = email + new Date().getTime() + Math.random().toString();
   const byteSignature = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, rawToken);
   const token = byteSignature.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, '0')).join('');
   const expiration = new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).getTime();
   const sessionSheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Active_Sessions');
   sessionSheet.appendRow([token, email, expiration]);
-  return { token: token, email: email };
+  return { token: token, email: email, nome: nome || 'Utente' };
 }
 
 function handleCheckSession(token) {
