@@ -1,6 +1,7 @@
 /**
  * GoLookLike - Core Application Javascript
- * Implementa le notifiche in-app, animazioni, modifica nome capo e tasto di uscita.
+ * Implementa: Cache locale Anti-Refresh, Sincronizzazione Totale Cloud, 
+ * Swipe UI (GoLike), Filtro Preferiti, Lavanderia, Armocromia dinamica, API Meteo.
  */
 
 // ==========================================
@@ -42,11 +43,9 @@ function getBrandInfo(brandName) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Popola Brand
   const dataList = document.getElementById('brands-list');
   if (dataList) brandDatabase.forEach(b => { const opt = document.createElement('option'); opt.value = b.nome; dataList.appendChild(opt); });
   
-  // Popola Nomi Capo per autocompletamento
   const namesList = document.getElementById('names-list');
   if (namesList && typeof generatorData !== 'undefined') {
     generatorData.tipologie.forEach(t => {
@@ -62,7 +61,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 2. STATO GLOBALE E NAVIGAZIONE
+// 2. STATO GLOBALE E SINCRONIZZAZIONE
 // ==========================================
 const appState = { 
   wardrobe: [], seenItems: [], currentCardItem: null, itemToEditId: null, 
@@ -84,7 +83,6 @@ function switchTab(element, viewId) {
   navigateTo(viewId);
 }
 
-// Funzione globale per uscire dal Wizard
 window.exitWizard = function() {
   document.getElementById('bottom-nav').style.display = 'flex';
   switchTab(document.querySelector('.nav-item[data-target="view-home"]'), 'view-home');
@@ -101,22 +99,46 @@ function markItemAsSeen(itemId) {
   appState.seenItems.push(itemId); localStorage.setItem('gll_seen_items', JSON.stringify(appState.seenItems)); 
 }
 
+// ** NOVITÀ: Sincronizzazione Universale e Cache Locale (Anti Refresh) **
+async function syncWardrobeToCloud() {
+  // 1. Salva subito localmente (Se l'utente preme F5, non perde nulla)
+  localStorage.setItem('gll_wardrobe_cache', JSON.stringify(appState.wardrobe));
+  
+  // 2. Sincronizza in Background con Google Sheets
+  const token = sessionStorage.getItem('gll_session_token') || localStorage.getItem('gll_session_token');
+  if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) {
+    try {
+      await apiCall('syncWardrobe', { token, wardrobe: appState.wardrobe });
+    } catch (e) { console.error("Errore salvataggio in cloud", e); }
+  }
+}
+
 async function initCoreApp() {
   manageWeeklyReset();
+  
+  // Ricarica la cache locale prima di tutto per azzerare i tempi di caricamento
+  const localCache = localStorage.getItem('gll_wardrobe_cache');
+  if(localCache) {
+    appState.wardrobe = JSON.parse(localCache);
+  }
+
   const token = sessionStorage.getItem('gll_session_token') || localStorage.getItem('gll_session_token');
   if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) {
     try {
       const res = await apiCall('getWardrobe', { token });
-      if (res.status === 'success') appState.wardrobe = res.data.wardrobe || [];
-    } catch (e) { console.error("Errore sincronizzazione", e); }
+      if (res.status === 'success' && res.data.wardrobe) {
+        appState.wardrobe = res.data.wardrobe;
+        localStorage.setItem('gll_wardrobe_cache', JSON.stringify(appState.wardrobe)); // Aggiorna la cache
+      }
+    } catch (e) { console.error("Errore sincronizzazione cloud", e); }
   }
+  
   document.getElementById('bottom-nav').style.display = 'flex';
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
   document.querySelector('.nav-item[data-target="view-home"]')?.classList.add('active');
   initHome();
 }
 
-// Animazione Splash
 window.addEventListener('DOMContentLoaded', () => {
   const splashText = document.getElementById('splash-text'), particlesContainer = document.getElementById('particles-container');
   if (splashText && particlesContainer) {
@@ -196,24 +218,16 @@ function setupDeckHammer(element) {
 async function saveSwipedItem(accepted) {
   const feedback = document.getElementById('swipe-feedback');
   if (accepted && currentCardElement) {
-    // Animazione Feedback Cuore
-    if (feedback) {
-      feedback.innerHTML = '❤️';
-      feedback.className = 'swipe-feedback show-accept';
-      setTimeout(() => feedback.className = 'swipe-feedback', 400);
-    }
+    if (feedback) { feedback.innerHTML = '❤️'; feedback.className = 'swipe-feedback show-accept'; setTimeout(() => feedback.className = 'swipe-feedback', 400); }
     currentCardElement.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`; currentCardElement.style.opacity = '0';
     appState.wardrobe.push(appState.currentCardItem); markItemAsSeen(appState.currentCardItem.hash);
-    const token = sessionStorage.getItem('gll_session_token') || localStorage.getItem('gll_session_token');
-    if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) await apiCall('saveItem', { token, item: appState.currentCardItem });
+    
+    // Sincronizza nel cloud e localmente
+    await syncWardrobeToCloud();
     window.showToast("Capo aggiunto all'armadio!", "success");
+    
   } else if (currentCardElement) {
-    // Animazione Feedback Scarto
-    if (feedback) {
-      feedback.innerHTML = '✕';
-      feedback.className = 'swipe-feedback show-reject';
-      setTimeout(() => feedback.className = 'swipe-feedback', 400);
-    }
+    if (feedback) { feedback.innerHTML = '✕'; feedback.className = 'swipe-feedback show-reject'; setTimeout(() => feedback.className = 'swipe-feedback', 400); }
     currentCardElement.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`; currentCardElement.style.opacity = '0';
     markItemAsSeen(appState.currentCardItem.hash);
   }
@@ -274,12 +288,19 @@ function renderWardrobe() {
     el.innerHTML = generateCardHTML(item, true);
     
     const favBtn = el.querySelector('.fav-btn');
-    if(favBtn) { favBtn.addEventListener('click', (e) => { e.stopPropagation(); item.is_favorite = !item.is_favorite; renderWardrobe(); }); }
+    if(favBtn) {
+      favBtn.addEventListener('click', async (e) => { 
+        e.stopPropagation(); 
+        item.is_favorite = !item.is_favorite; 
+        await syncWardrobeToCloud(); // Sync modifica
+        renderWardrobe(); 
+      });
+    }
 
     el.addEventListener('click', () => { 
       appState.itemToEditId = item.id; 
       document.getElementById('modal-item-preview').innerText = item.emoji; 
-      document.getElementById('edit-name-input').value = item.nome_capo; // Compila il nome attuale
+      document.getElementById('edit-name-input').value = item.nome_capo; 
       document.getElementById('edit-brand-input').value = item.brand !== 'Generico' ? item.brand : ''; 
       document.getElementById('edit-qty-input').value = item.quantity || 1; 
       document.getElementById('modal-edit').classList.add('active'); 
@@ -298,21 +319,23 @@ document.getElementById('btn-save-add-modal')?.addEventListener('click', async (
 
   const newItem = { id: 'item_manual_' + Date.now(), emoji: typeData.emoji, pos: typeData.pos, nome_capo: typeData.nome, brand: brandVal, colore_hex: colorHex, pesantezza: pesVal, contesti: ['Quotidiano'], quantity: 1, is_dirty: false, is_favorite: false };
   appState.wardrobe.push(newItem);
-  const token = sessionStorage.getItem('gll_session_token') || localStorage.getItem('gll_session_token');
-  if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) await apiCall('saveItem', { token, item: newItem });
-
+  
+  await syncWardrobeToCloud();
+  
   document.getElementById('modal-add').classList.remove('active'); 
   window.showToast("Capo inserito con successo!", "success");
   renderWardrobe(); 
 });
 
 document.getElementById('btn-close-modal')?.addEventListener('click', () => document.getElementById('modal-edit').classList.remove('active'));
-document.getElementById('btn-save-modal')?.addEventListener('click', () => {
+document.getElementById('btn-save-modal')?.addEventListener('click', async () => {
   const item = appState.wardrobe.find(i => i.id === appState.itemToEditId);
   if(item) {
     if(document.getElementById('edit-name-input').value) item.nome_capo = document.getElementById('edit-name-input').value.trim();
     if(document.getElementById('edit-brand-input').value) item.brand = document.getElementById('edit-brand-input').value.trim();
     if(parseInt(document.getElementById('edit-qty-input').value) > 0) item.quantity = parseInt(document.getElementById('edit-qty-input').value);
+    
+    await syncWardrobeToCloud(); // Sync modifiche
   }
   document.getElementById('modal-edit').classList.remove('active'); 
   window.showToast("Modifiche salvate.", "info");
@@ -337,8 +360,9 @@ document.getElementById('btn-open-laundry')?.addEventListener('click', () => {
   navigateTo('view-laundry');
 });
 
-document.getElementById('btn-laundry-reset')?.addEventListener('click', () => {
+document.getElementById('btn-laundry-reset')?.addEventListener('click', async () => {
   appState.wardrobe.forEach(i => i.is_dirty = false);
+  await syncWardrobeToCloud(); // Sync post-lavanderia
   window.showToast("Lavatrice completata! Capi pronti.", "success");
   document.getElementById('bottom-nav').style.display = 'flex';
   switchTab(document.querySelector('.nav-item[data-target="view-profile"]'), 'view-profile');
@@ -417,7 +441,7 @@ function swapSingleItem(pos) {
 }
 
 document.getElementById('btn-reset-match')?.addEventListener('click', () => navigateTo('view-wizard-1'));
-document.getElementById('btn-confirm-outfit')?.addEventListener('click', () => { 
+document.getElementById('btn-confirm-outfit')?.addEventListener('click', async () => { 
   ['top', 'bottom', 'shoes'].forEach(pos => {
     if (appState.currentOutfit[pos]) {
       const matchId = appState.currentOutfit[pos].id;
@@ -425,6 +449,8 @@ document.getElementById('btn-confirm-outfit')?.addEventListener('click', () => {
       if (wItem) wItem.is_dirty = true;
     }
   });
+  
+  await syncWardrobeToCloud(); // Sync cloud per i capi indossati
   window.showToast("Outfit confermato! Capi in lavanderia.", "success");
   document.getElementById('bottom-nav').style.display = 'flex';
   switchTab(document.querySelector('.nav-item[data-target="view-home"]'), 'view-home');

@@ -1,3 +1,8 @@
+/**
+ * GoLookLike - Gestione Sicurezza, OTP e Sessioni
+ * Implementa la logica di login, notifiche in-app e sincronizzazione.
+ */
+
 let isRegistrationMode = false;
 
 document.getElementById('tab-login')?.addEventListener('click', (e) => {
@@ -49,16 +54,19 @@ function clearLocalData() {
   sessionStorage.removeItem('gll_user_email');
 }
 
-// Logica per il pulsante Disconnetti nel Profilo
 document.getElementById('btn-logout')?.addEventListener('click', () => {
   clearLocalData();
   document.getElementById('bottom-nav').style.display = 'none';
+  window.showToast("Disconnesso con successo.", "info");
   navigateTo('view-login');
 });
 
 document.getElementById('btn-send-otp')?.addEventListener('click', async () => {
   const email = document.getElementById('email-input').value;
-  if (!email.includes('@')) return alert("Inserisci un'email valida.");
+  if (!email.includes('@')) {
+    if(window.showToast) window.showToast("Inserisci un'email valida.", "error");
+    return;
+  }
   
   let payload = { email: email };
   
@@ -66,7 +74,10 @@ document.getElementById('btn-send-otp')?.addEventListener('click', async () => {
     payload.nome = document.getElementById('nome-input').value;
     payload.cognome = document.getElementById('cognome-input').value;
     payload.sesso = document.getElementById('sesso-input').value;
-    if (!payload.nome || !payload.cognome || !payload.sesso) return alert("Compila tutti i campi di registrazione.");
+    if (!payload.nome || !payload.cognome || !payload.sesso) {
+      if(window.showToast) window.showToast("Compila tutti i campi di registrazione.", "error");
+      return;
+    }
     sessionStorage.setItem('gll_temp_user', JSON.stringify(payload));
   }
 
@@ -76,9 +87,10 @@ document.getElementById('btn-send-otp')?.addEventListener('click', async () => {
   try {
     await apiCall('sendOTP', payload);
     document.getElementById('otp-email-display').innerText = email;
+    if(window.showToast) window.showToast("Codice inviato! Controlla la posta.", "success");
     navigateTo('view-otp');
   } catch (error) { 
-    alert("Errore invio OTP."); 
+    if(window.showToast) window.showToast("Errore invio OTP.", "error");
   } finally { 
     btn.innerText = isRegistrationMode ? "Registrati e Ricevi OTP" : "Ricevi Codice OTP"; 
     btn.disabled = false; 
@@ -90,7 +102,10 @@ document.getElementById('btn-verify-otp')?.addEventListener('click', async () =>
   const otp = document.getElementById('otp-input').value;
   const rememberMe = document.getElementById('remember-me')?.checked || false;
   
-  if (otp.length !== 6) return alert("Inserisci 6 cifre esatte.");
+  if (otp.length !== 6) {
+    if(window.showToast) window.showToast("Inserisci 6 cifre esatte.", "error");
+    return;
+  }
   
   let payload = { email: email, otp: otp, isRegistering: isRegistrationMode };
   if (isRegistrationMode) {
@@ -113,12 +128,13 @@ document.getElementById('btn-verify-otp')?.addEventListener('click', async () =>
         sessionStorage.setItem('gll_user_name', res.data.nome); 
         sessionStorage.setItem('gll_user_email', email);
       }
+      if(window.showToast) window.showToast("Accesso completato!", "success");
       initCoreApp(); 
     } else { 
-      alert(res.message || "Codice errato o scaduto."); 
+      if(window.showToast) window.showToast(res.message || "Codice errato o scaduto.", "error");
     }
   } catch (error) { 
-    alert("Errore di connessione al server."); 
+    if(window.showToast) window.showToast("Errore di connessione al server.", "error");
   } finally { 
     btn.innerText = "Entra"; 
     btn.disabled = false; 
@@ -128,12 +144,25 @@ document.getElementById('btn-verify-otp')?.addEventListener('click', async () =>
 function mockApiCall(action, payload) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      if (action === 'checkSession') resolve({ status: 'error' });
-      if (action === 'sendOTP') { console.log(`Codice OTP per ${payload.email}: 123456`); resolve({ status: 'success' }); }
+      // FIX PER IL REFRESH IN MOCK MODE:
+      if (action === 'checkSession') {
+        if(payload.token === 'mock_token_xyz') resolve({ status: 'success' });
+        else resolve({ status: 'error' });
+      }
+      
+      if (action === 'syncWardrobe') {
+        resolve({ status: 'success' });
+      }
+      
+      if (action === 'sendOTP') { 
+        console.log(`Codice OTP per ${payload.email}: 123456`); 
+        resolve({ status: 'success' }); 
+      }
+      
       if (action === 'verifyOTP') {
-        if (payload.otp === '123456') resolve({ status: 'success', data: { token: 'mock_token_xyz', nome: payload.nome || 'Mario', email: payload.email } });
+        if (payload.otp === '123456') resolve({ status: 'success', data: { token: 'mock_token_xyz', nome: payload.nome || 'Utente', email: payload.email } });
         else resolve({ status: 'error', message: 'Codice OTP errato. In ambiente test usa: 123456' });
       }
-    }, 800);
+    }, 500);
   });
 }
