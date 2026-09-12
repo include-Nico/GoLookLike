@@ -1,12 +1,9 @@
 /**
  * GoLookLike - Core Application Javascript
- * Implementa: Cache locale Anti-Refresh, Sincronizzazione Totale Cloud, 
- * Swipe UI (GoLike), Filtro Preferiti, Lavanderia, Armocromia dinamica, API Meteo.
+ * Aggiunti: Decluttering (Elimina Capo), Accessori Freddo Intelligenti, 
+ * Tasto "Togli" per accessori opzionali, e Note Libere.
  */
 
-// ==========================================
-// 0. SISTEMA NOTIFICHE IN-APP (TOAST)
-// ==========================================
 window.showToast = function(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -14,15 +11,14 @@ window.showToast = function(message, type = 'info') {
   toast.className = `toast ${type}`;
   toast.innerHTML = `<span>${message}</span>`;
   container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('fade-out');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3000);
 };
 
-// ==========================================
-// 1. DATABASE BRAND E NOMI
-// ==========================================
+function toggleDarkMode(enable) {
+  if (enable) { document.body.classList.add('dark-mode'); localStorage.setItem('gll_dark_mode', 'true'); } 
+  else { document.body.classList.remove('dark-mode'); localStorage.setItem('gll_dark_mode', 'false'); }
+}
+
 const brandDatabase = [
   { nome: 'Zara', rarity: 'Comune' }, { nome: 'H&M', rarity: 'Comune' }, { nome: 'Pull&Bear', rarity: 'Comune' }, { nome: 'Bershka', rarity: 'Comune' }, { nome: 'OVS', rarity: 'Comune' }, { nome: 'Primark', rarity: 'Comune' }, { nome: 'Mango', rarity: 'Comune' }, { nome: 'Tezenis', rarity: 'Comune' }, { nome: 'Alcott', rarity: 'Comune' }, { nome: 'Celio', rarity: 'Comune' }, { nome: 'Kiabi', rarity: 'Comune' }, { nome: 'Terranova', rarity: 'Comune' }, { nome: 'Stradivarius', rarity: 'Comune' }, { nome: 'Shein', rarity: 'Comune' }, { nome: 'Asos', rarity: 'Comune' }, { nome: 'Uniqlo', rarity: 'Comune' }, { nome: 'Generico', rarity: 'Comune' },
   { nome: 'Nike', rarity: 'Raro' }, { nome: 'Adidas', rarity: 'Raro' }, { nome: 'Puma', rarity: 'Raro' }, { nome: 'Reebok', rarity: 'Raro' }, { nome: 'Under Armour', rarity: 'Raro' }, { nome: 'New Balance', rarity: 'Raro' }, { nome: 'Asics', rarity: 'Raro' }, { nome: 'Fila', rarity: 'Raro' }, { nome: 'Champion', rarity: 'Raro' }, { nome: 'Kappa', rarity: 'Raro' }, { nome: 'Levi\'s', rarity: 'Raro' }, { nome: 'Vans', rarity: 'Raro' }, { nome: 'Converse', rarity: 'Raro' }, { nome: 'Timberland', rarity: 'Raro' }, { nome: 'Dr. Martens', rarity: 'Raro' }, { nome: 'Calvin Klein', rarity: 'Raro' }, { nome: 'Guess', rarity: 'Raro' }, { nome: 'Tommy Hilfiger', rarity: 'Raro' }, { nome: 'Lacoste', rarity: 'Raro' }, { nome: 'Diesel', rarity: 'Raro' }, { nome: 'Superdry', rarity: 'Raro' }, { nome: 'Hollister', rarity: 'Raro' },
@@ -34,25 +30,27 @@ const brandDatabase = [
 function getBrandInfo(brandName) {
   const b = brandDatabase.find(x => x.nome.toLowerCase() === brandName.toLowerCase());
   const rarity = b ? b.rarity : 'Comune';
-  let colorVar = 'var(--rarity-comune)';
-  if (rarity === 'Raro') colorVar = 'var(--rarity-raro)';
-  if (rarity === 'Super Raro') colorVar = 'var(--rarity-super-raro)';
-  if (rarity === 'Epico') colorVar = 'var(--rarity-epico)';
-  if (rarity === 'Leggendario') colorVar = 'var(--rarity-leggendario)';
-  return { rarity, colorVar };
+  let colorVar = 'var(--rarity-comune)'; let glowVar = 'rgba(178, 190, 195, 0.4)'; 
+  if (rarity === 'Raro') { colorVar = 'var(--rarity-raro)'; glowVar = 'rgba(9, 132, 227, 0.5)'; }
+  if (rarity === 'Super Raro') { colorVar = 'var(--rarity-super-raro)'; glowVar = 'rgba(108, 92, 231, 0.5)'; }
+  if (rarity === 'Epico') { colorVar = 'var(--rarity-epico)'; glowVar = 'rgba(225, 112, 85, 0.6)'; }
+  if (rarity === 'Leggendario') { colorVar = 'var(--rarity-leggendario)'; glowVar = 'rgba(253, 203, 110, 0.7)'; }
+  return { rarity, colorVar, glowVar };
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  const isDark = localStorage.getItem('gll_dark_mode') === 'true';
+  const darkToggle = document.getElementById('dark-mode-toggle');
+  if(darkToggle) darkToggle.checked = isDark;
+  toggleDarkMode(isDark);
+  darkToggle?.addEventListener('change', (e) => toggleDarkMode(e.target.checked));
+
   const dataList = document.getElementById('brands-list');
   if (dataList) brandDatabase.forEach(b => { const opt = document.createElement('option'); opt.value = b.nome; dataList.appendChild(opt); });
   
   const namesList = document.getElementById('names-list');
   if (namesList && typeof generatorData !== 'undefined') {
-    generatorData.tipologie.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.nome;
-      namesList.appendChild(opt);
-    });
+    generatorData.tipologie.forEach(t => { const opt = document.createElement('option'); opt.value = t.nome; namesList.appendChild(opt); });
   }
 
   document.getElementById('add-color-picker')?.addEventListener('input', (e) => {
@@ -60,23 +58,12 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ==========================================
-// 2. STATO GLOBALE E SINCRONIZZAZIONE
-// ==========================================
-const appState = { 
-  wardrobe: [], seenItems: [], currentCardItem: null, itemToEditId: null, 
-  weather: { temp: null, desc: null }, wizard: { context: null, style: null }, 
-  currentOutfit: { top: null, bottom: null, shoes: null }, filterMode: 'all' 
-};
+const appState = { wardrobe: [], seenItems: [], currentCardItem: null, itemToEditId: null, weather: { temp: null, desc: null }, wizard: { context: null, style: null }, currentOutfit: { top: null, bottom: null, shoes: null, accessory: null }, filterMode: 'all' };
 
-function navigateTo(viewId) { 
-  document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active')); 
-  document.getElementById(viewId).classList.add('active'); 
-}
+function navigateTo(viewId) { document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active')); document.getElementById(viewId).classList.add('active'); }
 
 function switchTab(element, viewId) {
-  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-  element.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active')); element.classList.add('active');
   if (viewId === 'view-dashboard') renderWardrobe();
   if (viewId === 'view-golike' && !currentCardElement) initSwipeDeck();
   if (viewId === 'view-profile') updateProfileView();
@@ -88,54 +75,24 @@ window.exitWizard = function() {
   switchTab(document.querySelector('.nav-item[data-target="view-home"]'), 'view-home');
 };
 
-function manageWeeklyReset() { 
-  const lastReset = localStorage.getItem('gll_last_reset'), now = Date.now(); 
-  if (!lastReset || (now - parseInt(lastReset)) > (7 * 24 * 60 * 60 * 1000)) { 
-    localStorage.setItem('gll_last_reset', now.toString()); appState.seenItems = []; localStorage.setItem('gll_seen_items', '[]'); 
-  } else { appState.seenItems = JSON.parse(localStorage.getItem('gll_seen_items') || '[]'); } 
-}
+function manageWeeklyReset() { const lastReset = localStorage.getItem('gll_last_reset'), now = Date.now(); if (!lastReset || (now - parseInt(lastReset)) > (7 * 24 * 60 * 60 * 1000)) { localStorage.setItem('gll_last_reset', now.toString()); appState.seenItems = []; localStorage.setItem('gll_seen_items', '[]'); } else { appState.seenItems = JSON.parse(localStorage.getItem('gll_seen_items') || '[]'); } }
+function markItemAsSeen(itemId) { appState.seenItems.push(itemId); localStorage.setItem('gll_seen_items', JSON.stringify(appState.seenItems)); }
 
-function markItemAsSeen(itemId) { 
-  appState.seenItems.push(itemId); localStorage.setItem('gll_seen_items', JSON.stringify(appState.seenItems)); 
-}
-
-// ** NOVITÀ: Sincronizzazione Universale e Cache Locale (Anti Refresh) **
 async function syncWardrobeToCloud() {
-  // 1. Salva subito localmente (Se l'utente preme F5, non perde nulla)
   localStorage.setItem('gll_wardrobe_cache', JSON.stringify(appState.wardrobe));
-  
-  // 2. Sincronizza in Background con Google Sheets
   const token = sessionStorage.getItem('gll_session_token') || localStorage.getItem('gll_session_token');
-  if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) {
-    try {
-      await apiCall('syncWardrobe', { token, wardrobe: appState.wardrobe });
-    } catch (e) { console.error("Errore salvataggio in cloud", e); }
-  }
+  if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) { try { await apiCall('syncWardrobe', { token, wardrobe: appState.wardrobe }); } catch (e) { console.error("Errore sync cloud", e); } }
 }
 
 async function initCoreApp() {
   manageWeeklyReset();
-  
-  // Ricarica la cache locale prima di tutto per azzerare i tempi di caricamento
-  const localCache = localStorage.getItem('gll_wardrobe_cache');
-  if(localCache) {
-    appState.wardrobe = JSON.parse(localCache);
-  }
-
+  const localCache = localStorage.getItem('gll_wardrobe_cache'); if(localCache) appState.wardrobe = JSON.parse(localCache);
   const token = sessionStorage.getItem('gll_session_token') || localStorage.getItem('gll_session_token');
   if (token && typeof CONFIG !== 'undefined' && !CONFIG.MOCK_BACKEND) {
-    try {
-      const res = await apiCall('getWardrobe', { token });
-      if (res.status === 'success' && res.data.wardrobe) {
-        appState.wardrobe = res.data.wardrobe;
-        localStorage.setItem('gll_wardrobe_cache', JSON.stringify(appState.wardrobe)); // Aggiorna la cache
-      }
-    } catch (e) { console.error("Errore sincronizzazione cloud", e); }
+    try { const res = await apiCall('getWardrobe', { token }); if (res.status === 'success' && res.data.wardrobe) { appState.wardrobe = res.data.wardrobe; localStorage.setItem('gll_wardrobe_cache', JSON.stringify(appState.wardrobe)); } } catch (e) { console.error("Errore cloud", e); }
   }
-  
   document.getElementById('bottom-nav').style.display = 'flex';
-  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-  document.querySelector('.nav-item[data-target="view-home"]')?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active')); document.querySelector('.nav-item[data-target="view-home"]')?.classList.add('active');
   initHome();
 }
 
@@ -156,12 +113,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ==========================================
-// 4. GENERATORE PROCEDURALE
-// ==========================================
+// Aggiunti Accessori Invernali (pos: 'accessory')
 const generatorData = {
   tipologie: [ 
-    { emoji: '👕', nome: 'T-shirt basica', pos: 'top', pesantezza: 1 }, { emoji: '👕', nome: 'T-shirt lunghe', pos: 'top', pesantezza: 2 }, { emoji: '👔', nome: 'Camicia sartoriale', pos: 'top', pesantezza: 1 }, { emoji: '🧥', nome: 'Maglia dolcevita', pos: 'top', pesantezza: 3 }, { emoji: '🧥', nome: 'Felpa Hoodie', pos: 'top', pesantezza: 2 }, { emoji: '👖', nome: 'Jeans straight', pos: 'bottom', pesantezza: 2 }, { emoji: '👖', nome: 'Pantalone Chino', pos: 'bottom', pesantezza: 2 }, { emoji: '🩳', nome: 'Bermuda', pos: 'bottom', pesantezza: 1 }, { emoji: '🧥', nome: 'Giacca di pelle', pos: 'top', pesantezza: 3 }, { emoji: '🧥', nome: 'Piumino', pos: 'top', pesantezza: 4 }, { emoji: '👟', nome: 'Sneakers', pos: 'shoes', pesantezza: 2 }, { emoji: '🥾', nome: 'Anfibi', pos: 'shoes', pesantezza: 3 } 
+    { emoji: '👕', nome: 'T-shirt basica', pos: 'top', pesantezza: 1 }, { emoji: '👕', nome: 'T-shirt lunghe', pos: 'top', pesantezza: 2 }, { emoji: '👔', nome: 'Camicia sartoriale', pos: 'top', pesantezza: 1 }, { emoji: '🧥', nome: 'Maglia dolcevita', pos: 'top', pesantezza: 3 }, { emoji: '🧥', nome: 'Felpa Hoodie', pos: 'top', pesantezza: 2 }, { emoji: '👖', nome: 'Jeans straight', pos: 'bottom', pesantezza: 2 }, { emoji: '👖', nome: 'Pantalone Chino', pos: 'bottom', pesantezza: 2 }, { emoji: '🩳', nome: 'Bermuda', pos: 'bottom', pesantezza: 1 }, { emoji: '🧥', nome: 'Giacca di pelle', pos: 'top', pesantezza: 3 }, { emoji: '🧥', nome: 'Piumino', pos: 'top', pesantezza: 4 }, { emoji: '👟', nome: 'Sneakers', pos: 'shoes', pesantezza: 2 }, { emoji: '🥾', nome: 'Anfibi', pos: 'shoes', pesantezza: 3 },
+    { emoji: '🧣', nome: 'Sciarpa in lana', pos: 'accessory', pesantezza: 4 }, { emoji: '🧤', nome: 'Guanti termici', pos: 'accessory', pesantezza: 4 }, { emoji: '🧢', nome: 'Berretto di lana', pos: 'accessory', pesantezza: 4 }
   ],
   colori: [ 
     { hex: '#FFFFFF', nome: 'Bianco ottico' }, { hex: '#0B0B0B', nome: 'Nero corvino' }, { hex: '#595959', nome: 'Grigio fumo' }, { hex: '#483C32', nome: 'Tortora' }, { hex: '#C19A6B', nome: 'Cammello' }, { hex: '#800020', nome: 'Bordeaux' }, { hex: '#1560BD', nome: 'Denim' }, { hex: '#50C878', nome: 'Verde smeraldo' }, { hex: '#708238', nome: 'Verde oliva' }, { hex: '#FFF44F', nome: 'Giallo limone' } 
@@ -186,20 +142,17 @@ function generateCardHTML(item, showFavBtn = false) {
   const brandInfo = getBrandInfo(item.brand), stars = '⭐'.repeat(item.pesantezza), qtyBadge = item.quantity > 1 ? `<div class="t-card-qty">x${item.quantity}</div>` : '';
   const textColor = chroma(item.colore_hex).luminance() > 0.4 ? '#2d3436' : '#ffffff';
   const favBadge = showFavBtn ? `<button class="fav-btn">${item.is_favorite ? '❤️' : '🤍'}</button>` : '';
-  return `${favBadge}${qtyBadge}<div class="card-emoji">${item.emoji}</div><div class="card-stats"><h3 class="card-title" style="color: #2d3436;">${item.nome_capo}</h3><div class="stat-row"><span class="stars">${stars}</span><span class="brand-badge" style="background: ${brandInfo.colorVar}">${item.brand}</span></div></div>`;
+  return `${favBadge}${qtyBadge}<div class="card-emoji">${item.emoji}</div><div class="card-stats"><h3 class="card-title" style="color: #2d3436;">${item.nome_capo}</h3><div class="stat-row"><span class="stars">${stars}</span><span class="brand-badge" style="background: ${brandInfo.colorVar}; box-shadow: 0 0 10px ${brandInfo.glowVar}">${item.brand}</span></div></div>`;
 }
 
-// ==========================================
-// 5. GOLIKE (ANIMAZIONI SWIPE)
-// ==========================================
+// SWIPE DECK
 let currentCardElement = null, hammerInstance = null;
-
 function initSwipeDeck() { renderNewCard(); }
 function renderNewCard() {
   const deck = document.getElementById('swipe-deck'); if(!deck) return; deck.innerHTML = ''; 
   const item = generateRandomItem(); appState.currentCardItem = item;
   const brandInfo = getBrandInfo(item.brand);
-  const card = document.createElement('div'); card.className = 'swipe-card t-card'; card.style.backgroundColor = item.colore_hex; card.style.setProperty('--rarity-color', brandInfo.colorVar); card.innerHTML = generateCardHTML(item, false);
+  const card = document.createElement('div'); card.className = 'swipe-card t-card'; card.style.backgroundColor = item.colore_hex; card.style.setProperty('--rarity-color', brandInfo.colorVar); card.style.setProperty('--rarity-glow', brandInfo.glowVar); card.innerHTML = generateCardHTML(item, false);
   deck.appendChild(card); currentCardElement = card; setupDeckHammer(card);
 }
 
@@ -209,9 +162,7 @@ function setupDeckHammer(element) {
   hammerInstance.on('pan', (ev) => { element.style.transition = 'none'; element.style.transform = `translate(${ev.deltaX}px, ${ev.deltaY}px) rotate(${(ev.deltaX * 0.04) * (ev.deltaY / 80)}deg)`; });
   hammerInstance.on('panend', (ev) => {
     element.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-    if (ev.deltaX > 100 || ev.velocityX > 1.5) { saveSwipedItem(true); } 
-    else if (ev.deltaX < -100 || ev.velocityX < -1.5) { saveSwipedItem(false); } 
-    else { element.style.transform = 'translate(0px, 0px) rotate(0deg)'; }
+    if (ev.deltaX > 100 || ev.velocityX > 1.5) { saveSwipedItem(true); } else if (ev.deltaX < -100 || ev.velocityX < -1.5) { saveSwipedItem(false); } else { element.style.transform = 'translate(0px, 0px) rotate(0deg)'; }
   });
 }
 
@@ -221,11 +172,7 @@ async function saveSwipedItem(accepted) {
     if (feedback) { feedback.innerHTML = '❤️'; feedback.className = 'swipe-feedback show-accept'; setTimeout(() => feedback.className = 'swipe-feedback', 400); }
     currentCardElement.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`; currentCardElement.style.opacity = '0';
     appState.wardrobe.push(appState.currentCardItem); markItemAsSeen(appState.currentCardItem.hash);
-    
-    // Sincronizza nel cloud e localmente
     await syncWardrobeToCloud();
-    window.showToast("Capo aggiunto all'armadio!", "success");
-    
   } else if (currentCardElement) {
     if (feedback) { feedback.innerHTML = '✕'; feedback.className = 'swipe-feedback show-reject'; setTimeout(() => feedback.className = 'swipe-feedback', 400); }
     currentCardElement.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`; currentCardElement.style.opacity = '0';
@@ -237,18 +184,12 @@ async function saveSwipedItem(accepted) {
 document.getElementById('btn-accept')?.addEventListener('click', () => saveSwipedItem(true));
 document.getElementById('btn-reject')?.addEventListener('click', () => saveSwipedItem(false));
 
-// ==========================================
-// 6. DASHBOARD & GESTIONE ARMADIO 
-// ==========================================
+// HOME E METEO
 function initHome() {
   navigateTo('view-home'); 
   const userName = sessionStorage.getItem('gll_user_name') || localStorage.getItem('gll_user_name') || 'Utente';
-  const greeting = document.getElementById('home-greeting');
-  if(greeting) greeting.innerText = `Ciao ${userName}.`;
-  
-  if(navigator.geolocation) { 
-    navigator.geolocation.getCurrentPosition( (pos) => fetchRealWeather(pos.coords.latitude, pos.coords.longitude, true), () => fetchRealWeather(45.4642, 9.1900, true) ); 
-  } else { fetchRealWeather(45.4642, 9.1900, true); }
+  const greeting = document.getElementById('home-greeting'); if(greeting) greeting.innerText = `Ciao ${userName}.`;
+  if(navigator.geolocation) { navigator.geolocation.getCurrentPosition( (pos) => fetchRealWeather(pos.coords.latitude, pos.coords.longitude, true), () => fetchRealWeather(45.4642, 9.1900, true) ); } else { fetchRealWeather(45.4642, 9.1900, true); }
 }
 
 async function fetchRealWeather(lat, lon, isSilent = false) {
@@ -258,44 +199,29 @@ async function fetchRealWeather(lat, lon, isSilent = false) {
     const data = await res.json();
     appState.weather.temp = Math.round(data.main.temp); appState.weather.desc = data.weather[0].description;
     const tempEl = document.getElementById('weather-temp'), descEl = document.getElementById('weather-desc');
-    if(tempEl) tempEl.innerText = `${appState.weather.temp}°C`; 
-    if(descEl) descEl.innerText = appState.weather.desc.charAt(0).toUpperCase() + appState.weather.desc.slice(1);
+    if(tempEl) tempEl.innerText = `${appState.weather.temp}°C`; if(descEl) descEl.innerText = appState.weather.desc.charAt(0).toUpperCase() + appState.weather.desc.slice(1);
     if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800);
-  } catch (e) { 
-    appState.weather.temp = 18; const tempEl = document.getElementById('weather-temp');
-    if(tempEl) tempEl.innerText = `18°C`; 
-    if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800); 
-  }
+  } catch (e) { appState.weather.temp = 18; const tempEl = document.getElementById('weather-temp'); if(tempEl) tempEl.innerText = `18°C`; if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800); }
 }
 
-document.getElementById('filter-all')?.addEventListener('click', (e) => {
-  document.getElementById('filter-favs').classList.remove('active'); e.target.classList.add('active'); appState.filterMode = 'all'; renderWardrobe();
-});
-document.getElementById('filter-favs')?.addEventListener('click', (e) => {
-  document.getElementById('filter-all').classList.remove('active'); e.target.classList.add('active'); appState.filterMode = 'favs'; renderWardrobe();
-});
+// DASHBOARD, MODIFICA E DECLUTTERING (Elimina)
+document.getElementById('filter-all')?.addEventListener('click', (e) => { document.getElementById('filter-favs').classList.remove('active'); e.target.classList.add('active'); appState.filterMode = 'all'; renderWardrobe(); });
+document.getElementById('filter-favs')?.addEventListener('click', (e) => { document.getElementById('filter-all').classList.remove('active'); e.target.classList.add('active'); appState.filterMode = 'favs'; renderWardrobe(); });
 
 function renderWardrobe() {
   let displayItems = appState.wardrobe.filter(i => !i.is_dirty);
   if (appState.filterMode === 'favs') displayItems = displayItems.filter(i => i.is_favorite);
   
-  const countEl = document.getElementById('wardrobe-count');
-  if(countEl) countEl.innerText = `Capi pronti: ${displayItems.length}`;
+  const countEl = document.getElementById('wardrobe-count'); if(countEl) countEl.innerText = `Capi pronti: ${displayItems.length}`;
   const grid = document.getElementById('wardrobe-grid'); if(!grid) return; grid.innerHTML = '';
   
   displayItems.forEach(item => {
-    const el = document.createElement('div'); el.className = 't-card grid-item'; el.style.backgroundColor = item.colore_hex; el.style.setProperty('--rarity-color', getBrandInfo(item.brand).colorVar); 
+    const brandInfo = getBrandInfo(item.brand);
+    const el = document.createElement('div'); el.className = 't-card grid-item'; el.style.backgroundColor = item.colore_hex; el.style.setProperty('--rarity-color', brandInfo.colorVar); el.style.setProperty('--rarity-glow', brandInfo.glowVar);
     el.innerHTML = generateCardHTML(item, true);
     
     const favBtn = el.querySelector('.fav-btn');
-    if(favBtn) {
-      favBtn.addEventListener('click', async (e) => { 
-        e.stopPropagation(); 
-        item.is_favorite = !item.is_favorite; 
-        await syncWardrobeToCloud(); // Sync modifica
-        renderWardrobe(); 
-      });
-    }
+    if(favBtn) { favBtn.addEventListener('click', async (e) => { e.stopPropagation(); item.is_favorite = !item.is_favorite; await syncWardrobeToCloud(); renderWardrobe(); }); }
 
     el.addEventListener('click', () => { 
       appState.itemToEditId = item.id; 
@@ -311,40 +237,47 @@ function renderWardrobe() {
 
 document.getElementById('btn-add-manual')?.addEventListener('click', () => document.getElementById('modal-add').classList.add('active'));
 document.getElementById('btn-close-add-modal')?.addEventListener('click', () => document.getElementById('modal-add').classList.remove('active'));
+
 document.getElementById('btn-save-add-modal')?.addEventListener('click', async () => {
   const typeData = JSON.parse(document.getElementById('add-type-input').value);
+  const noteVal = document.getElementById('add-note-input').value.trim();
   const brandVal = document.getElementById('add-brand-input').value.trim() || 'Generico';
   const colorHex = document.getElementById('add-color-hex').value;
   const pesVal = parseInt(document.getElementById('add-pesantezza-input').value);
 
-  const newItem = { id: 'item_manual_' + Date.now(), emoji: typeData.emoji, pos: typeData.pos, nome_capo: typeData.nome, brand: brandVal, colore_hex: colorHex, pesantezza: pesVal, contesti: ['Quotidiano'], quantity: 1, is_dirty: false, is_favorite: false };
+  const finalName = noteVal ? noteVal : typeData.nome;
+  const newItem = { id: 'item_manual_' + Date.now(), emoji: typeData.emoji, pos: typeData.pos, nome_capo: finalName, brand: brandVal, colore_hex: colorHex, pesantezza: pesVal, contesti: ['Quotidiano'], quantity: 1, is_dirty: false, is_favorite: false };
+  
   appState.wardrobe.push(newItem);
-  
   await syncWardrobeToCloud();
-  
-  document.getElementById('modal-add').classList.remove('active'); 
-  window.showToast("Capo inserito con successo!", "success");
-  renderWardrobe(); 
+  document.getElementById('modal-add').classList.remove('active'); window.showToast("Capo inserito con successo!", "success"); renderWardrobe(); 
 });
 
 document.getElementById('btn-close-modal')?.addEventListener('click', () => document.getElementById('modal-edit').classList.remove('active'));
+
 document.getElementById('btn-save-modal')?.addEventListener('click', async () => {
   const item = appState.wardrobe.find(i => i.id === appState.itemToEditId);
   if(item) {
     if(document.getElementById('edit-name-input').value) item.nome_capo = document.getElementById('edit-name-input').value.trim();
     if(document.getElementById('edit-brand-input').value) item.brand = document.getElementById('edit-brand-input').value.trim();
     if(parseInt(document.getElementById('edit-qty-input').value) > 0) item.quantity = parseInt(document.getElementById('edit-qty-input').value);
-    
-    await syncWardrobeToCloud(); // Sync modifiche
+    await syncWardrobeToCloud(); 
   }
-  document.getElementById('modal-edit').classList.remove('active'); 
-  window.showToast("Modifiche salvate.", "info");
-  renderWardrobe();
+  document.getElementById('modal-edit').classList.remove('active'); window.showToast("Modifiche salvate.", "success"); renderWardrobe();
 });
 
-// ==========================================
-// 7. PROFILO E LAVANDERIA
-// ==========================================
+// Nuovo: Eliminazione Capo
+document.getElementById('btn-delete-modal')?.addEventListener('click', async () => {
+  if (confirm("Sei sicuro di voler buttare via definitivamente questo capo?")) {
+    appState.wardrobe = appState.wardrobe.filter(i => i.id !== appState.itemToEditId);
+    await syncWardrobeToCloud();
+    document.getElementById('modal-edit').classList.remove('active');
+    window.showToast("Capo rimosso dall'armadio.", "success");
+    renderWardrobe();
+  }
+});
+
+// PROFILO E LAVANDERIA
 function updateProfileView() {
   const userName = sessionStorage.getItem('gll_user_name') || localStorage.getItem('gll_user_name') || 'Utente';
   const userEmail = sessionStorage.getItem('gll_user_email') || localStorage.getItem('gll_user_email') || 'Nessuna email salvata';
@@ -355,25 +288,20 @@ function updateProfileView() {
 document.getElementById('btn-open-laundry')?.addEventListener('click', () => {
   const dirtyItems = appState.wardrobe.filter(i => i.is_dirty);
   const grid = document.getElementById('laundry-grid'); grid.innerHTML = '';
-  dirtyItems.forEach(item => { const el = document.createElement('div'); el.className = 't-card grid-item'; el.style.backgroundColor = item.colore_hex; el.style.setProperty('--rarity-color', getBrandInfo(item.brand).colorVar); el.style.opacity = '0.7'; el.innerHTML = generateCardHTML(item, false); grid.appendChild(el); });
-  document.getElementById('bottom-nav').style.display = 'none';
-  navigateTo('view-laundry');
+  dirtyItems.forEach(item => { const brandInfo = getBrandInfo(item.brand); const el = document.createElement('div'); el.className = 't-card grid-item'; el.style.backgroundColor = item.colore_hex; el.style.setProperty('--rarity-color', brandInfo.colorVar); el.style.setProperty('--rarity-glow', brandInfo.glowVar); el.style.opacity = '0.7'; el.innerHTML = generateCardHTML(item, false); grid.appendChild(el); });
+  document.getElementById('bottom-nav').style.display = 'none'; navigateTo('view-laundry');
 });
 
 document.getElementById('btn-laundry-reset')?.addEventListener('click', async () => {
   appState.wardrobe.forEach(i => i.is_dirty = false);
-  await syncWardrobeToCloud(); // Sync post-lavanderia
+  await syncWardrobeToCloud(); 
   window.showToast("Lavatrice completata! Capi pronti.", "success");
-  document.getElementById('bottom-nav').style.display = 'flex';
-  switchTab(document.querySelector('.nav-item[data-target="view-profile"]'), 'view-profile');
+  document.getElementById('bottom-nav').style.display = 'flex'; switchTab(document.querySelector('.nav-item[data-target="view-profile"]'), 'view-profile');
 });
 
-// ==========================================
-// 8. WIZARD GENERATORE E ARMOCROMIA (MATCH)
-// ==========================================
+// WIZARD, MATCH E ACCESSORI
 document.getElementById('btn-start-wizard')?.addEventListener('click', () => { 
-  document.getElementById('bottom-nav').style.display = 'none'; 
-  navigateTo('view-loading'); 
+  document.getElementById('bottom-nav').style.display = 'none'; navigateTo('view-loading'); 
   if(navigator.geolocation) { navigator.geolocation.getCurrentPosition( (pos) => fetchRealWeather(pos.coords.latitude, pos.coords.longitude, false), () => fetchRealWeather(45.4642, 9.1900, false) ); } else { fetchRealWeather(45.4642, 9.1900, false); }
 });
 
@@ -407,21 +335,46 @@ function generateMatch() {
     const shoesCandidates = src.filter(c => c.pos === 'shoes' && isColorHarmonious(bottom.colore_hex, c.colore_hex, appState.wizard.context));
     const shoes = shoesCandidates.find(c => c.is_favorite) || shoesCandidates[0] || src.find(c => c.pos === 'shoes');
 
-    appState.currentOutfit = { top, bottom, shoes };
+    let accessory = null;
+    // Se fa freddo (< 15°C), cerca un accessorio
+    if (appState.weather.temp < 15) {
+      const accCandidates = src.filter(c => c.pos === 'accessory');
+      accessory = accCandidates.find(c => c.is_favorite) || accCandidates[0] || src.find(c => c.pos === 'accessory');
+    }
+
+    appState.currentOutfit = { top, bottom, shoes, accessory };
     renderOutfitStack();
     document.getElementById('match-context-desc').innerText = `Armocromia ottimizzata per ${appState.weather.temp}°C e ${appState.wizard.context}`;
     navigateTo('view-match');
   }, 1200);
 }
 
+// Rimuove l'accessorio opzionale dall'outfit
+window.removeAccessory = function() {
+  appState.currentOutfit['accessory'] = null;
+  renderOutfitStack();
+};
+
 function renderOutfitStack() {
   const stack = document.getElementById('outfit-stack'); stack.innerHTML = '';
-  ['top', 'bottom', 'shoes'].forEach(pos => {
+  ['top', 'bottom', 'shoes', 'accessory'].forEach(pos => {
     const item = appState.currentOutfit[pos];
     if (!item) return;
+    
     const brandInfo = getBrandInfo(item.brand), textColor = chroma(item.colore_hex).luminance() > 0.4 ? '#2d3436' : '#ffffff';
-    const el = document.createElement('div'); el.className = 'match-item'; el.dataset.pos = pos; el.style.setProperty('--rarity-color', brandInfo.colorVar);
-    el.innerHTML = `<div class="match-item-color" style="background:${item.colore_hex}; color:${textColor};">${item.emoji}</div><div class="match-item-details"><h4 class="match-item-name">${item.nome_capo}</h4><p class="match-item-brand" style="color:${brandInfo.colorVar}; font-weight:800;">${item.brand}</p></div>`;
+    const el = document.createElement('div'); el.className = 'match-item'; el.dataset.pos = pos; el.style.setProperty('--rarity-color', brandInfo.colorVar); el.style.setProperty('--rarity-glow', brandInfo.glowVar);
+    
+    // Tasto "Togli" solo per accessorio opzionale
+    const removeBtn = pos === 'accessory' ? `<button class="btn-remove-acc" onclick="removeAccessory(event)">✕ Togli</button>` : '';
+
+    el.innerHTML = `
+      <div class="match-item-color" style="background:${item.colore_hex}; color:${textColor};">${item.emoji}</div>
+      <div class="match-item-details">
+        <h4 class="match-item-name">${item.nome_capo}</h4>
+        <p class="match-item-brand" style="color:${brandInfo.colorVar}; font-weight:800; box-shadow: 0 2px 8px ${brandInfo.glowVar}">${item.brand}</p>
+      </div>
+      ${removeBtn}
+    `;
     stack.appendChild(el);
     
     const h = new Hammer(el);
@@ -434,15 +387,20 @@ function renderOutfitStack() {
 function swapSingleItem(pos) {
   const src = getCleanWardrobe();
   let targetPes = 2; if (appState.weather.temp < 15) targetPes = 3; if (appState.weather.temp > 24) targetPes = 1;
-  const currentItem = appState.currentOutfit[pos], baseColor = pos === 'top' ? appState.currentOutfit['bottom']?.colore_hex : appState.currentOutfit['top']?.colore_hex;
+  const currentItem = appState.currentOutfit[pos];
+  
+  // L'accessorio non ha una base colore vincolante rigida, ma prova comunque a matchare
+  const baseColor = pos === 'top' ? appState.currentOutfit['bottom']?.colore_hex : appState.currentOutfit['top']?.colore_hex;
+  
   const newItem = src.find(c => c.pos === pos && c.id !== currentItem.id && Math.abs(c.pesantezza - targetPes) <= 1 && isColorHarmonious(baseColor, c.colore_hex, appState.wizard.context)) || src.find(c => c.pos === pos && c.id !== currentItem.id);
+  
   if (newItem) appState.currentOutfit[pos] = newItem;
   renderOutfitStack();
 }
 
 document.getElementById('btn-reset-match')?.addEventListener('click', () => navigateTo('view-wizard-1'));
 document.getElementById('btn-confirm-outfit')?.addEventListener('click', async () => { 
-  ['top', 'bottom', 'shoes'].forEach(pos => {
+  ['top', 'bottom', 'shoes', 'accessory'].forEach(pos => {
     if (appState.currentOutfit[pos]) {
       const matchId = appState.currentOutfit[pos].id;
       const wItem = appState.wardrobe.find(i => i.id === matchId);
@@ -450,7 +408,7 @@ document.getElementById('btn-confirm-outfit')?.addEventListener('click', async (
     }
   });
   
-  await syncWardrobeToCloud(); // Sync cloud per i capi indossati
+  await syncWardrobeToCloud(); 
   window.showToast("Outfit confermato! Capi in lavanderia.", "success");
   document.getElementById('bottom-nav').style.display = 'flex';
   switchTab(document.querySelector('.nav-item[data-target="view-home"]'), 'view-home');

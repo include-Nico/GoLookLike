@@ -11,7 +11,6 @@
 </head>
 <body>
   
-  <!-- Sistema di Notifiche App In-App -->
   <div id="toast-container" class="toast-container"></div>
 
   <datalist id="brands-list"></datalist>
@@ -21,6 +20,7 @@
   <div id="modal-add" class="modal-overlay">
     <div class="glass-card modal-content" style="max-height: 90vh; overflow-y: auto;">
       <h3 style="margin-top:0;">Nuovo Capo</h3>
+      
       <label class="input-label">Categoria</label>
       <select id="add-type-input" class="glass-select">
         <option value='{"emoji":"👕","nome":"T-shirt","pos":"top"}'>👕 T-shirt</option>
@@ -30,16 +30,27 @@
         <option value='{"emoji":"🩳","nome":"Bermuda","pos":"bottom"}'>🩳 Bermuda / Corti</option>
         <option value='{"emoji":"👟","nome":"Sneakers","pos":"shoes"}'>👟 Sneakers</option>
         <option value='{"emoji":"🥾","nome":"Anfibi/Stivali","pos":"shoes"}'>🥾 Anfibi / Stivali</option>
+        <option value='{"emoji":"🧣","nome":"Sciarpa/Collo","pos":"accessory"}'>🧣 Sciarpa / Collo</option>
+        <option value='{"emoji":"🧤","nome":"Guanti","pos":"accessory"}'>🧤 Guanti</option>
+        <option value='{"emoji":"🧢","nome":"Berretto di lana","pos":"accessory"}'>🧢 Berretto di lana</option>
+        <option value='{"emoji":"🏷️","nome":"Nota Personale","pos":"top"}'>🏷️ Altro / Nota Libera</option>
       </select>
+
+      <label class="input-label">Nome Personalizzato o Note</label>
+      <input type="text" id="add-note-input" placeholder="Es. Regalo di compleanno, macchiato..." />
+
       <label class="input-label">Brand</label>
-      <input type="text" id="add-brand-input" list="brands-list" placeholder="Es. Carhartt WIP" />
+      <input type="text" id="add-brand-input" list="brands-list" placeholder="Es. Carhartt WIP (Vuoto per Generico)" />
+      
       <label class="input-label">Colore Principale</label>
       <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <input type="color" id="add-color-picker" value="#000000" style="width: 50px; height: 50px; padding: 0; border-radius: 12px; cursor: pointer;">
         <input type="text" id="add-color-hex" value="#000000" style="margin: 0; flex: 1; text-transform: uppercase;" readonly>
       </div>
+      
       <label class="input-label">Pesantezza (1 Estate - 4 Inverno)</label>
       <input type="range" id="add-pesantezza-input" min="1" max="4" value="2" style="width: 100%; margin-bottom: 25px;">
+      
       <div style="display: flex; gap: 10px;">
         <button id="btn-close-add-modal" class="primary-btn" style="background: var(--secondary-text);">Annulla</button>
         <button id="btn-save-add-modal" class="primary-btn magic-btn">Aggiungi</button>
@@ -49,7 +60,7 @@
 
   <!-- Modale Modifica Capo -->
   <div id="modal-edit" class="modal-overlay">
-    <div class="glass-card modal-content">
+    <div class="glass-card modal-content" style="max-height: 90vh; overflow-y: auto;">
       <h3 style="margin-top:0;">Modifica Capo</h3>
       <div id="modal-item-preview" style="margin-bottom: 10px; font-size: 40px;">👕</div>
       
@@ -64,10 +75,12 @@
         <input type="number" id="edit-qty-input" min="1" max="99" style="width: 80px; margin: 0; text-align: center;" />
       </div>
       
-      <div style="display: flex; gap: 10px;">
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
         <button id="btn-close-modal" class="primary-btn" style="background: var(--secondary-text);">Annulla</button>
         <button id="btn-save-modal" class="primary-btn magic-btn">Salva</button>
       </div>
+      <!-- Tasto Elimina aggiunto sotto i tasti principali -->
+      <button id="btn-delete-modal" class="primary-btn danger-btn" style="margin-top: 10px;">🗑️ Butta / Elimina Capo</button>
     </div>
   </div>
 
@@ -134,7 +147,7 @@
   </div>
 
   <!-- TAB 2: Armadio -->
-  <div id="view-dashboard" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
+  <div id="view-dashboard" class="view-container view-scrollable">
     <h2 class="brand-title">Armadio</h2>
     <p id="wardrobe-count" class="subtitle">Capi pronti: 0</p>
     <div class="auth-tabs" style="width: 100%; max-width: 400px; margin-top: -10px; margin-bottom: 15px;">
@@ -162,16 +175,24 @@
     </div>
   </div>
 
-  <!-- TAB 4: Profilo & Lavanderia -->
-  <div id="view-profile" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
+  <!-- TAB 4: Profilo & Lavanderia & Tema Scuro -->
+  <div id="view-profile" class="view-container view-scrollable">
     <h2 class="brand-title">Profilo</h2>
     <div class="glass-card" style="margin-top: 20px; width: 100%; max-width: 400px; padding: 20px;">
       <div style="font-size: 60px; margin-bottom: 10px;">👤</div>
       <h3 id="profile-name" style="margin: 0; color: var(--primary-text);">Utente</h3>
       <p id="profile-email" style="color: var(--secondary-text); margin-top: 5px; font-size: 14px;">email@test.com</p>
       
-      <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 20px 0;">
+      <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 20px 0;">
       
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <span style="font-weight: 600;">Tema Scuro:</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="dark-mode-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <span style="font-weight: 600;">Cesti Lavanderia:</span>
         <span id="laundry-count-badge" style="background: var(--reject-color); color: white; padding: 4px 10px; border-radius: 12px; font-size: 14px; font-weight: bold;">0</span>
@@ -183,7 +204,7 @@
   </div>
 
   <!-- Lavanderia Vista (Accessibile dal Profilo) -->
-  <div id="view-laundry" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
+  <div id="view-laundry" class="view-container view-scrollable">
     <div class="glass-card" style="position: relative; width: 100%; max-width: 800px; padding: 20px; background: transparent; border: none; box-shadow: none;">
       <button class="btn-close-wizard" onclick="exitWizard()" style="top: 0; right: 0;">✕</button>
       <h2 class="brand-title">Lavanderia</h2>
@@ -195,12 +216,12 @@
     </div>
   </div>
 
-  <!-- Componenti Wizard (Con Tasto Exit) -->
+  <!-- Componenti Wizard -->
   <div id="view-loading" class="view-container">
     <div class="loading-wrapper">
       <div class="spinner-pulse"></div>
       <h3 style="margin-top: 30px;">Analisi Cromatica...</h3>
-      <p class="subtitle" style="color: #636e72;">Incrociando temperature, armocromia e capi puliti</p>
+      <p class="subtitle" style="color: var(--secondary-text);">Incrociando temperature, armocromia e capi puliti</p>
     </div>
   </div>
 
@@ -263,7 +284,7 @@
   </nav>
 
   <script src="js/config.js"></script>
-  <script src="js/app.js"></script> <!-- Spostato prima per registrare window.showToast globale -->
+  <script src="js/app.js"></script>
   <script src="js/auth.js"></script>
 </body>
 </html>
