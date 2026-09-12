@@ -11,7 +11,11 @@
 </head>
 <body>
   
+  <!-- Sistema di Notifiche App In-App -->
+  <div id="toast-container" class="toast-container"></div>
+
   <datalist id="brands-list"></datalist>
+  <datalist id="names-list"></datalist>
 
   <!-- Modale Aggiunta Manuale -->
   <div id="modal-add" class="modal-overlay">
@@ -47,12 +51,19 @@
   <div id="modal-edit" class="modal-overlay">
     <div class="glass-card modal-content">
       <h3 style="margin-top:0;">Modifica Capo</h3>
-      <div id="modal-item-preview" style="margin-bottom: 20px; font-size: 40px;">👕</div>
+      <div id="modal-item-preview" style="margin-bottom: 10px; font-size: 40px;">👕</div>
+      
+      <label class="input-label">Nome Capo</label>
+      <input type="text" id="edit-name-input" list="names-list" placeholder="Es. T-shirt basica" />
+
+      <label class="input-label">Brand</label>
       <input type="text" id="edit-brand-input" list="brands-list" placeholder="Cerca o inserisci brand..." />
+      
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <label style="font-weight: 600;">Quantità:</label>
+        <label style="font-weight: 600; font-size: 14px; color: var(--secondary-text);">Quantità nel guardaroba:</label>
         <input type="number" id="edit-qty-input" min="1" max="99" style="width: 80px; margin: 0; text-align: center;" />
       </div>
+      
       <div style="display: flex; gap: 10px;">
         <button id="btn-close-modal" class="primary-btn" style="background: var(--secondary-text);">Annulla</button>
         <button id="btn-save-modal" class="primary-btn magic-btn">Salva</button>
@@ -136,10 +147,14 @@
 
   <!-- TAB 3: GoLike (Swipe) -->
   <div id="view-golike" class="view-container">
-    <div class="glass-card onboarding-container">
+    <div class="glass-card onboarding-container" style="position: relative;">
       <h2 class="brand-title">GoLike</h2>
       <p class="subtitle">Scopri e aggiungi nuovi capi al tuo stile.</p>
       <div id="swipe-deck" class="deck"></div>
+      
+      <!-- Animazione Feedback Swipe -->
+      <div id="swipe-feedback" class="swipe-feedback"></div>
+      
       <div class="swipe-controls">
         <button id="btn-reject" class="control-btn reject">✕</button>
         <button id="btn-accept" class="control-btn accept">❤</button>
@@ -169,15 +184,18 @@
 
   <!-- Lavanderia Vista (Accessibile dal Profilo) -->
   <div id="view-laundry" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
-    <h2 class="brand-title">Lavanderia</h2>
-    <p class="subtitle">Capi attualmente sporchi o in lavaggio.</p>
+    <div class="glass-card" style="position: relative; width: 100%; max-width: 800px; padding: 20px; background: transparent; border: none; box-shadow: none;">
+      <button class="btn-close-wizard" onclick="exitWizard()" style="top: 0; right: 0;">✕</button>
+      <h2 class="brand-title">Lavanderia</h2>
+      <p class="subtitle">Capi attualmente sporchi o in lavaggio.</p>
+    </div>
     <div id="laundry-grid" class="wardrobe-grid"></div>
     <div style="display: flex; gap: 15px; margin-top: 20px; width: 100%; max-width: 400px;">
       <button id="btn-laundry-reset" class="primary-btn" style="background: var(--accept-color); color: #2d3436;">Svuota Lavatrice</button>
     </div>
   </div>
 
-  <!-- Componenti Wizard (Invariati) -->
+  <!-- Componenti Wizard (Con Tasto Exit) -->
   <div id="view-loading" class="view-container">
     <div class="loading-wrapper">
       <div class="spinner-pulse"></div>
@@ -187,7 +205,8 @@
   </div>
 
   <div id="view-wizard-1" class="view-container">
-    <div class="glass-card" style="max-width: 500px;">
+    <div class="glass-card" style="max-width: 500px; position: relative;">
+      <button class="btn-close-wizard" onclick="exitWizard()">✕</button>
       <h2 style="margin-bottom: 25px;">Dove andiamo?</h2>
       <div class="grid-options">
         <button class="context-btn" data-context="Università">📚<br>Università</button>
@@ -199,7 +218,8 @@
   </div>
 
   <div id="view-wizard-2" class="view-container">
-    <div class="glass-card" style="max-width: 500px;">
+    <div class="glass-card" style="max-width: 500px; position: relative;">
+      <button class="btn-close-wizard" onclick="exitWizard()">✕</button>
       <h2 style="margin-bottom: 25px;">Che stile cerchi?</h2>
       <div class="grid-options">
         <button class="style-btn" data-style="Comodo">🛋️<br>Comodo</button>
@@ -211,7 +231,8 @@
   </div>
 
   <div id="view-match" class="view-container">
-    <div class="glass-card match-container">
+    <div class="glass-card match-container" style="position: relative;">
+      <button class="btn-close-wizard" onclick="exitWizard()">✕</button>
       <h2>Il tuo Outfit</h2>
       <p class="subtitle" id="match-context-desc">Ottimizzato per il tuo contesto</p>
       <div id="outfit-stack" class="outfit-stack"></div>
@@ -242,7 +263,7 @@
   </nav>
 
   <script src="js/config.js"></script>
+  <script src="js/app.js"></script> <!-- Spostato prima per registrare window.showToast globale -->
   <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
 </body>
 </html>
