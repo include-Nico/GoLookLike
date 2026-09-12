@@ -1,6 +1,6 @@
 /**
  * GoLookLike - Core Application
- * Implementa: Database brand, Swipe generico, Preferiti, Lavanderia, Armocromia e Wizard Universale.
+ * Gestione Armadio Personale isolato, OpenWeatherMap API, Armocromia e Lavanderia.
  */
 
 // ==========================================
@@ -16,7 +16,7 @@ const brandDatabase = [
 
 function getBrandInfo(brandName) {
   const b = brandDatabase.find(x => x.nome.toLowerCase() === brandName.toLowerCase());
-  const rarity = b ? b.rarity : 'Comune'; // Brand custom o non trovati catalogati come Comune
+  const rarity = b ? b.rarity : 'Comune';
   let colorVar = 'var(--rarity-comune)';
   if (rarity === 'Raro') colorVar = 'var(--rarity-raro)';
   if (rarity === 'Super Raro') colorVar = 'var(--rarity-super-raro)';
@@ -71,8 +71,23 @@ function markItemAsSeen(itemId) {
   localStorage.setItem('gll_seen_items', JSON.stringify(appState.seenItems)); 
 }
 
-function initCoreApp() {
+// Inizializzazione sincronizzata con il backend personale
+async function initCoreApp() {
   manageWeeklyReset();
+  
+  // Sincronizza l'armadio personale dell'utente loggato
+  const token = localStorage.getItem('gll_session_token');
+  if (token && !CONFIG.MOCK_BACKEND) {
+    try {
+      const res = await apiCall('getWardrobe', { token });
+      if (res.status === 'success') {
+        appState.wardrobe = res.data.wardrobe || [];
+      }
+    } catch (e) {
+      console.error("Errore sincronizzazione armadio cloud:", e);
+    }
+  }
+
   if (appState.wardrobe.length === 0) { 
     initSwipeDeck(); 
     navigateTo('view-onboarding'); 
@@ -99,53 +114,27 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 3. GENERATORE PROCEDURALE (INDUMENTI ESPANSI)
+// 3. GENERATORE PROCEDURALE
 // ==========================================
 const generatorData = {
   tipologie: [
     { emoji: '👕', nome: 'T-shirt basica', pos: 'top', pesantezza: 1 },
     { emoji: '👕', nome: 'T-shirt maniche lunghe', pos: 'top', pesantezza: 2 },
-    { emoji: '👕', nome: 'Canotta in cotone', pos: 'top', pesantezza: 1 },
     { emoji: '👔', nome: 'Camicia sartoriale', pos: 'top', pesantezza: 1 },
-    { emoji: '👔', nome: 'Camicia in denim', pos: 'top', pesantezza: 2 },
-    { emoji: '🧥', nome: 'Maglia dolcevita', pos: 'top', pesantezza: 3 },
-    { emoji: '🧥', nome: 'Pullover girocollo', pos: 'top', pesantezza: 3 },
-    { emoji: '🧥', nome: 'Cardigan classico', pos: 'top', pesantezza: 2 },
-    { emoji: '🧥', nome: 'Felpa girocollo', pos: 'top', pesantezza: 2 },
-    { emoji: '🧥', nome: 'Felpa Hoodie', pos: 'top', pesantezza: 2 },
-    { emoji: '👕', nome: 'Polo', pos: 'top', pesantezza: 1 },
-    { emoji: '👖', nome: 'Jeans straight', pos: 'bottom', pesantezza: 2 },
-    { emoji: '👖', nome: 'Jeans skinny', pos: 'bottom', pesantezza: 2 },
-    { emoji: '👖', nome: 'Pantalone Chino', pos: 'bottom', pesantezza: 2 },
-    { emoji: '👖', nome: 'Pantalone cargo', pos: 'bottom', pesantezza: 2 },
-    { emoji: '👖', nome: 'Joggers sportivi', pos: 'bottom', pesantezza: 2 },
-    { emoji: '🩳', nome: 'Bermuda sartoriali', pos: 'bottom', pesantezza: 1 },
-    { emoji: '🧥', nome: 'Blazer monopetto', pos: 'top', pesantezza: 2 },
+    { emoji: '🧥', nome: 'Felpa con cappuccio', pos: 'top', pesantezza: 2 },
     { emoji: '🧥', nome: 'Giacca di pelle', pos: 'top', pesantezza: 3 },
-    { emoji: '🧥', nome: 'Trench classico', pos: 'top', pesantezza: 2 },
-    { emoji: '🧥', nome: 'Cappotto sartoriale', pos: 'top', pesantezza: 4 },
-    { emoji: '🧥', nome: 'Piumino leggero', pos: 'top', pesantezza: 3 },
-    { emoji: '🧥', nome: 'Giacca a vento', pos: 'top', pesantezza: 2 },
+    { emoji: '👖', nome: 'Jeans straight', pos: 'bottom', pesantezza: 2 },
+    { emoji: '👖', nome: 'Pantalone Chino', pos: 'bottom', pesantezza: 2 },
     { emoji: '👟', nome: 'Sneakers classiche', pos: 'shoes', pesantezza: 2 },
-    { emoji: '👞', nome: 'Mocassini', pos: 'shoes', pesantezza: 2 },
-    { emoji: '🥾', nome: 'Stivaletti', pos: 'shoes', pesantezza: 3 },
-    { emoji: '🥾', nome: 'Anfibi', pos: 'shoes', pesantezza: 3 }
+    { emoji: '🥾', nome: 'Anfibi stringati', pos: 'shoes', pesantezza: 3 }
   ],
   colori: [
-    { hex: '#FFFFFF', nome: 'Bianco ottico' }, { hex: '#FFFFF0', nome: 'Bianco panna' },
-    { hex: '#0B0B0B', nome: 'Nero corvino' }, { hex: '#595959', nome: 'Grigio fumo' },
-    { hex: '#E2E2E2', nome: 'Grigio perla' }, { hex: '#36454F', nome: 'Grigio antracite' },
-    { hex: '#483C32', nome: 'Tortora' }, { hex: '#C2B280', nome: 'Sabbia' },
-    { hex: '#7B3F00', nome: 'Marrone cioccolato' }, { hex: '#C19A6B', nome: 'Cammello' },
-    { hex: '#B7410E', nome: 'Ruggine' }, { hex: '#E2725B', nome: 'Terracotta' },
-    { hex: '#FFDB58', nome: 'Senape' }, { hex: '#E25822', nome: 'Rosso fuoco' },
-    { hex: '#800020', nome: 'Bordeaux' }, { hex: '#900020', nome: 'Borgogna' },
-    { hex: '#191970', nome: 'Blu notte' }, { hex: '#000080', nome: 'Blu navy' },
-    { hex: '#508AAA', nome: 'Carta da zucchero' }, { hex: '#1560BD', nome: 'Denim' },
-    { hex: '#50C878', nome: 'Verde smeraldo' }, { hex: '#4B5320', nome: 'Verde militare' }, 
-    { hex: '#708238', nome: 'Verde oliva' }, { hex: '#FFF44F', nome: 'Giallo limone' }
+    { hex: '#FFFFFF', nome: 'Bianco ottico' }, { hex: '#0B0B0B', nome: 'Nero corvino' },
+    { hex: '#595959', nome: 'Grigio fumo' }, { hex: '#1560BD', nome: 'Denim' },
+    { hex: '#708238', nome: 'Verde oliva' }, { hex: '#800020', nome: 'Bordeaux' },
+    { hex: '#C19A6B', nome: 'Cammello' }
   ],
-  contestiPossibili: ['📚 Università', '💼 Lavoro', '🥋 Sport', '🍻 Serata', '🛋️ Tempo Libero']
+  contestiPossibili: ['📚 Università', '💼 Lavoro', '🥋 Sport', '🍻 Serata']
 };
 
 function generateRandomItem() {
@@ -162,7 +151,7 @@ function generateRandomItem() {
       emoji: tipo.emoji, 
       pos: tipo.pos, 
       nome_capo: `${tipo.nome} ${colore.nome}`, 
-      brand: 'Generico', // Capi inizialmente unbrand nello swipe
+      brand: 'Generico', 
       colore_hex: colore.hex, 
       pesantezza: tipo.pesantezza, 
       contesti: contestiShuffled.slice(0, 2), 
@@ -206,18 +195,38 @@ function setupDeckHammer(element) {
   hammerInstance.on('pan', (ev) => { element.style.transition = 'none'; element.style.transform = `translate(${ev.deltaX}px, ${ev.deltaY}px) rotate(${(ev.deltaX * 0.04) * (ev.deltaY / 80)}deg)`; });
   hammerInstance.on('panend', (ev) => {
     element.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-    if (ev.deltaX > 100 || ev.velocityX > 1.5) { element.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`; element.style.opacity = '0'; appState.wardrobe.push(appState.currentCardItem); markItemAsSeen(appState.currentCardItem.hash); setTimeout(() => renderNewCard(), 300); } 
-    else if (ev.deltaX < -100 || ev.velocityX < -1.5) { element.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`; element.style.opacity = '0'; markItemAsSeen(appState.currentCardItem.hash); setTimeout(() => renderNewCard(), 300); } 
+    if (ev.deltaX > 100 || ev.velocityX > 1.5) { saveSwipedItem(true); } 
+    else if (ev.deltaX < -100 || ev.velocityX < -1.5) { saveSwipedItem(false); } 
     else { element.style.transform = 'translate(0px, 0px) rotate(0deg)'; }
   });
 }
 
-document.getElementById('btn-accept')?.addEventListener('click', () => { if(currentCardElement) { currentCardElement.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`; currentCardElement.style.opacity = '0'; appState.wardrobe.push(appState.currentCardItem); markItemAsSeen(appState.currentCardItem.hash); setTimeout(() => renderNewCard(), 300); } });
-document.getElementById('btn-reject')?.addEventListener('click', () => { if(currentCardElement) { currentCardElement.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`; currentCardElement.style.opacity = '0'; markItemAsSeen(appState.currentCardItem.hash); setTimeout(() => renderNewCard(), 300); } });
+async function saveSwipedItem(accepted) {
+  if (accepted && currentCardElement) {
+    currentCardElement.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`;
+    currentCardElement.style.opacity = '0';
+    appState.wardrobe.push(appState.currentCardItem);
+    markItemAsSeen(appState.currentCardItem.hash);
+    
+    // Sincronizzazione cloud personale
+    const token = localStorage.getItem('gll_session_token');
+    if (token && !CONFIG.MOCK_BACKEND) {
+      await apiCall('saveItem', { token, item: appState.currentCardItem });
+    }
+  } else if (currentCardElement) {
+    currentCardElement.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`;
+    currentCardElement.style.opacity = '0';
+    markItemAsSeen(appState.currentCardItem.hash);
+  }
+  setTimeout(() => renderNewCard(), 300);
+}
+
+document.getElementById('btn-accept')?.addEventListener('click', () => saveSwipedItem(true));
+document.getElementById('btn-reject')?.addEventListener('click', () => saveSwipedItem(false));
 document.getElementById('btn-skip-onboarding')?.addEventListener('click', initHome);
 
 // ==========================================
-// 5. HOME & API METEO
+// 5. HOME & API METEO REALE
 // ==========================================
 function initHome() {
   navigateTo('view-home'); 
@@ -227,28 +236,41 @@ function initHome() {
   const dirtyCount = appState.wardrobe.filter(i => i.is_dirty).length;
   document.getElementById('laundry-count').innerText = dirtyCount;
 
+  // Geolocalizzazione + OpenWeatherMap API
   if(navigator.geolocation) { 
     navigator.geolocation.getCurrentPosition( 
-      (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude, true), 
-      () => fetchWeather(45.4642, 9.1900, true) 
+      (pos) => fetchRealWeather(pos.coords.latitude, pos.coords.longitude, true), 
+      () => fetchRealWeather(45.4642, 9.1900, true) // Fallback Milano
     ); 
   } else { 
-    fetchWeather(45.4642, 9.1900, true); 
+    fetchRealWeather(45.4642, 9.1900, true); 
   }
 }
 
-async function fetchWeather(lat, lon, isSilent = false) {
+async function fetchRealWeather(lat, lon, isSilent = false) {
   try {
     const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${CONFIG.WEATHER_API_KEY}&units=metric&lang=it`);
+    if (!res.ok) throw new Error("Errore chiamata meteo");
+    
     const data = await res.json();
-    appState.weather.temp = Math.round(data.main.temp); appState.weather.desc = data.weather[0].description;
-    document.getElementById('weather-temp').innerText = `${appState.weather.temp}°C`; document.getElementById('weather-desc').innerText = appState.weather.desc.charAt(0).toUpperCase() + appState.weather.desc.slice(1);
+    appState.weather.temp = Math.round(data.main.temp); 
+    appState.weather.desc = data.weather[0].description;
+    
+    document.getElementById('weather-temp').innerText = `${appState.weather.temp}°C`; 
+    document.getElementById('weather-desc').innerText = appState.weather.desc.charAt(0).toUpperCase() + appState.weather.desc.slice(1);
+    
     if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800);
-  } catch (e) { appState.weather.temp = 18; document.getElementById('weather-temp').innerText = `18°C`; if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800); }
+  } catch (e) { 
+    console.warn("API meteo fallita, uso fallback 18°C");
+    appState.weather.temp = 18; 
+    document.getElementById('weather-temp').innerText = `18°C`; 
+    document.getElementById('weather-desc').innerText = "Sereno (offline)";
+    if(!isSilent) setTimeout(() => navigateTo('view-wizard-1'), 800); 
+  }
 }
 
 // ==========================================
-// 6. DASHBOARD & GESTIONE ARMADIO
+// 6. DASHBOARD & GESTIONE ARMADIO PERSONALE
 // ==========================================
 document.getElementById('filter-all')?.addEventListener('click', (e) => {
   document.getElementById('filter-favs').classList.remove('active'); e.target.classList.add('active');
@@ -294,7 +316,8 @@ function renderWardrobe() {
 
 document.getElementById('btn-add-manual')?.addEventListener('click', () => document.getElementById('modal-add').classList.add('active'));
 document.getElementById('btn-close-add-modal')?.addEventListener('click', () => document.getElementById('modal-add').classList.remove('active'));
-document.getElementById('btn-save-add-modal')?.addEventListener('click', () => {
+
+document.getElementById('btn-save-add-modal')?.addEventListener('click', async () => {
   const typeData = JSON.parse(document.getElementById('add-type-input').value);
   const brandVal = document.getElementById('add-brand-input').value.trim() || 'Generico';
   const colorHex = document.getElementById('add-color-hex').value;
@@ -306,6 +329,12 @@ document.getElementById('btn-save-add-modal')?.addEventListener('click', () => {
   };
 
   appState.wardrobe.push(newItem);
+  
+  const token = localStorage.getItem('gll_session_token');
+  if (token && !CONFIG.MOCK_BACKEND) {
+    await apiCall('saveItem', { token, item: newItem });
+  }
+
   document.getElementById('modal-add').classList.remove('active');
   renderWardrobe(); 
 });
@@ -340,9 +369,27 @@ document.getElementById('btn-laundry-reset')?.addEventListener('click', () => {
 // ==========================================
 // 8. WIZARD E ARMOCROMIA
 // ==========================================
-document.getElementById('btn-start-wizard')?.addEventListener('click', () => { navigateTo('view-loading'); fetchWeather(45.4642, 9.1900, false); });
-document.querySelectorAll('.context-btn').forEach(btn => btn.addEventListener('click', (e) => { appState.wizard.context = e.currentTarget.getAttribute('data-context'); navigateTo('view-wizard-2'); }));
-document.querySelectorAll('.style-btn').forEach(btn => btn.addEventListener('click', (e) => { appState.wizard.style = e.currentTarget.getAttribute('data-style'); generateMatch(); }));
+document.getElementById('btn-start-wizard')?.addEventListener('click', () => { 
+  navigateTo('view-loading'); 
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => fetchRealWeather(pos.coords.latitude, pos.coords.longitude, false),
+      () => fetchRealWeather(45.4642, 9.1900, false)
+    );
+  } else {
+    fetchRealWeather(45.4642, 9.1900, false);
+  }
+});
+
+document.querySelectorAll('.context-btn').forEach(btn => btn.addEventListener('click', (e) => { 
+  appState.wizard.context = e.currentTarget.getAttribute('data-context'); 
+  navigateTo('view-wizard-2'); 
+}));
+
+document.querySelectorAll('.style-btn').forEach(btn => btn.addEventListener('click', (e) => { 
+  appState.wizard.style = e.currentTarget.getAttribute('data-style'); 
+  generateMatch(); 
+}));
 
 function isColorHarmonious(hex1, hex2, context) {
   if (!hex1 || !hex2) return true;
@@ -395,7 +442,7 @@ function renderOutfitStack() {
     const h = new Hammer(el);
     h.on('panend', (ev) => {
       if (Math.abs(ev.deltaX) > 80) {
-        el.style.transform = `translateX(${ev.deltaX > 0 ? '100%' : '-100%'})`; el.style.opacity = '0';
+        el.style.transform = `translateX(${ev.deltaX > 0 ? '100%': '-100%'})`; el.style.opacity = '0';
         setTimeout(() => swapSingleItem(pos), 300);
       }
     });
