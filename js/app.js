@@ -1,17 +1,29 @@
 /**
  * GoLookLike - Core Application Javascript
- * Aggiunti: Decluttering (Elimina Capo), Accessori Freddo Intelligenti, 
- * Tasto "Togli" per accessori opzionali, e Note Libere.
+ * Implementa: Toast Design a Pillola, Animazioni Swipe globali, 
+ * Decluttering, Accessori Freddo Intelligenti, Note Libere e Tema Scuro.
  */
 
+// ==========================================
+// 0. SISTEMA NOTIFICHE IN-APP (TOAST PILL)
+// ==========================================
 window.showToast = function(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
   const toast = document.createElement('div');
+  
+  let icon = 'ℹ️';
+  if(type === 'success') icon = '✅';
+  if(type === 'error') icon = '❌';
+  
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${message}</span>`;
+  toast.innerHTML = `<span style="margin-right: 8px;">${icon}</span><span>${message}</span>`;
   container.appendChild(toast);
-  setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3000);
+  
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
 };
 
 function toggleDarkMode(enable) {
@@ -19,6 +31,9 @@ function toggleDarkMode(enable) {
   else { document.body.classList.remove('dark-mode'); localStorage.setItem('gll_dark_mode', 'false'); }
 }
 
+// ==========================================
+// 1. DATABASE BRAND E NOMI
+// ==========================================
 const brandDatabase = [
   { nome: 'Zara', rarity: 'Comune' }, { nome: 'H&M', rarity: 'Comune' }, { nome: 'Pull&Bear', rarity: 'Comune' }, { nome: 'Bershka', rarity: 'Comune' }, { nome: 'OVS', rarity: 'Comune' }, { nome: 'Primark', rarity: 'Comune' }, { nome: 'Mango', rarity: 'Comune' }, { nome: 'Tezenis', rarity: 'Comune' }, { nome: 'Alcott', rarity: 'Comune' }, { nome: 'Celio', rarity: 'Comune' }, { nome: 'Kiabi', rarity: 'Comune' }, { nome: 'Terranova', rarity: 'Comune' }, { nome: 'Stradivarius', rarity: 'Comune' }, { nome: 'Shein', rarity: 'Comune' }, { nome: 'Asos', rarity: 'Comune' }, { nome: 'Uniqlo', rarity: 'Comune' }, { nome: 'Generico', rarity: 'Comune' },
   { nome: 'Nike', rarity: 'Raro' }, { nome: 'Adidas', rarity: 'Raro' }, { nome: 'Puma', rarity: 'Raro' }, { nome: 'Reebok', rarity: 'Raro' }, { nome: 'Under Armour', rarity: 'Raro' }, { nome: 'New Balance', rarity: 'Raro' }, { nome: 'Asics', rarity: 'Raro' }, { nome: 'Fila', rarity: 'Raro' }, { nome: 'Champion', rarity: 'Raro' }, { nome: 'Kappa', rarity: 'Raro' }, { nome: 'Levi\'s', rarity: 'Raro' }, { nome: 'Vans', rarity: 'Raro' }, { nome: 'Converse', rarity: 'Raro' }, { nome: 'Timberland', rarity: 'Raro' }, { nome: 'Dr. Martens', rarity: 'Raro' }, { nome: 'Calvin Klein', rarity: 'Raro' }, { nome: 'Guess', rarity: 'Raro' }, { nome: 'Tommy Hilfiger', rarity: 'Raro' }, { nome: 'Lacoste', rarity: 'Raro' }, { nome: 'Diesel', rarity: 'Raro' }, { nome: 'Superdry', rarity: 'Raro' }, { nome: 'Hollister', rarity: 'Raro' },
@@ -145,7 +160,7 @@ function generateCardHTML(item, showFavBtn = false) {
   return `${favBadge}${qtyBadge}<div class="card-emoji">${item.emoji}</div><div class="card-stats"><h3 class="card-title" style="color: #2d3436;">${item.nome_capo}</h3><div class="stat-row"><span class="stars">${stars}</span><span class="brand-badge" style="background: ${brandInfo.colorVar}; box-shadow: 0 0 10px ${brandInfo.glowVar}">${item.brand}</span></div></div>`;
 }
 
-// SWIPE DECK
+// SWIPE DECK E ANIMAZIONI GOLIKE
 let currentCardElement = null, hammerInstance = null;
 function initSwipeDeck() { renderNewCard(); }
 function renderNewCard() {
@@ -169,12 +184,12 @@ function setupDeckHammer(element) {
 async function saveSwipedItem(accepted) {
   const feedback = document.getElementById('swipe-feedback');
   if (accepted && currentCardElement) {
-    if (feedback) { feedback.innerHTML = '❤️'; feedback.className = 'swipe-feedback show-accept'; setTimeout(() => feedback.className = 'swipe-feedback', 400); }
+    if (feedback) { feedback.innerHTML = '❤️'; feedback.className = 'swipe-feedback show-accept'; setTimeout(() => feedback.className = 'swipe-feedback', 600); }
     currentCardElement.style.transform = `translate(${window.innerWidth}px, 100px) rotate(30deg)`; currentCardElement.style.opacity = '0';
     appState.wardrobe.push(appState.currentCardItem); markItemAsSeen(appState.currentCardItem.hash);
     await syncWardrobeToCloud();
   } else if (currentCardElement) {
-    if (feedback) { feedback.innerHTML = '✕'; feedback.className = 'swipe-feedback show-reject'; setTimeout(() => feedback.className = 'swipe-feedback', 400); }
+    if (feedback) { feedback.innerHTML = '✕'; feedback.className = 'swipe-feedback show-reject'; setTimeout(() => feedback.className = 'swipe-feedback', 600); }
     currentCardElement.style.transform = `translate(-${window.innerWidth}px, 100px) rotate(-30deg)`; currentCardElement.style.opacity = '0';
     markItemAsSeen(appState.currentCardItem.hash);
   }
@@ -266,7 +281,6 @@ document.getElementById('btn-save-modal')?.addEventListener('click', async () =>
   document.getElementById('modal-edit').classList.remove('active'); window.showToast("Modifiche salvate.", "success"); renderWardrobe();
 });
 
-// Nuovo: Eliminazione Capo
 document.getElementById('btn-delete-modal')?.addEventListener('click', async () => {
   if (confirm("Sei sicuro di voler buttare via definitivamente questo capo?")) {
     appState.wardrobe = appState.wardrobe.filter(i => i.id !== appState.itemToEditId);
@@ -336,7 +350,6 @@ function generateMatch() {
     const shoes = shoesCandidates.find(c => c.is_favorite) || shoesCandidates[0] || src.find(c => c.pos === 'shoes');
 
     let accessory = null;
-    // Se fa freddo (< 15°C), cerca un accessorio
     if (appState.weather.temp < 15) {
       const accCandidates = src.filter(c => c.pos === 'accessory');
       accessory = accCandidates.find(c => c.is_favorite) || accCandidates[0] || src.find(c => c.pos === 'accessory');
@@ -349,8 +362,8 @@ function generateMatch() {
   }, 1200);
 }
 
-// Rimuove l'accessorio opzionale dall'outfit
-window.removeAccessory = function() {
+window.removeAccessory = function(event) {
+  if(event) event.stopPropagation();
   appState.currentOutfit['accessory'] = null;
   renderOutfitStack();
 };
@@ -364,7 +377,6 @@ function renderOutfitStack() {
     const brandInfo = getBrandInfo(item.brand), textColor = chroma(item.colore_hex).luminance() > 0.4 ? '#2d3436' : '#ffffff';
     const el = document.createElement('div'); el.className = 'match-item'; el.dataset.pos = pos; el.style.setProperty('--rarity-color', brandInfo.colorVar); el.style.setProperty('--rarity-glow', brandInfo.glowVar);
     
-    // Tasto "Togli" solo per accessorio opzionale
     const removeBtn = pos === 'accessory' ? `<button class="btn-remove-acc" onclick="removeAccessory(event)">✕ Togli</button>` : '';
 
     el.innerHTML = `
@@ -388,12 +400,8 @@ function swapSingleItem(pos) {
   const src = getCleanWardrobe();
   let targetPes = 2; if (appState.weather.temp < 15) targetPes = 3; if (appState.weather.temp > 24) targetPes = 1;
   const currentItem = appState.currentOutfit[pos];
-  
-  // L'accessorio non ha una base colore vincolante rigida, ma prova comunque a matchare
   const baseColor = pos === 'top' ? appState.currentOutfit['bottom']?.colore_hex : appState.currentOutfit['top']?.colore_hex;
-  
   const newItem = src.find(c => c.pos === pos && c.id !== currentItem.id && Math.abs(c.pesantezza - targetPes) <= 1 && isColorHarmonious(baseColor, c.colore_hex, appState.wizard.context)) || src.find(c => c.pos === pos && c.id !== currentItem.id);
-  
   if (newItem) appState.currentOutfit[pos] = newItem;
   renderOutfitStack();
 }
