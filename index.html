@@ -3,38 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GoLookLike</title>
-  
+  <title>GoLookLike - Smart Wardrobe</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
-  
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  
+  <!-- Datalist per Autocompletamento Brand -->
+  <datalist id="brands-list"></datalist>
 
-  <!-- VIEW 0: Splash Screen Animata & Loader Sessione -->
+  <!-- Modal Modifica Capo -->
+  <div id="modal-edit" class="modal-overlay">
+    <div class="glass-card modal-content">
+      <h3 style="margin-top:0;">Modifica Capo</h3>
+      <div id="modal-item-preview" style="margin-bottom: 20px; font-size: 40px;">👕</div>
+      <input type="text" id="edit-brand-input" list="brands-list" placeholder="Cerca o inserisci brand..." />
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <label style="font-weight: 600;">Quantità nel guardaroba:</label>
+        <input type="number" id="edit-qty-input" min="1" max="99" style="width: 80px; margin: 0; text-align: center;" />
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-close-modal" class="primary-btn" style="background: var(--secondary-text);">Annulla</button>
+        <button id="btn-save-modal" class="primary-btn magic-btn">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 0: Splash Screen Animata -->
   <div id="view-splash" class="view-container active splash-bg">
     <div id="splash-content">
       <h1 id="splash-text">GLL</h1>
-      <p id="session-loader" style="display:none; color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 20px;">
-        Sincronizzazione armadio...
-      </p>
+      <p id="session-loader" style="display:none; color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 20px;">Sincronizzazione armadio...</p>
     </div>
     <div id="particles-container"></div>
   </div>
 
-  <!-- VIEW 1: Login -->
+  <!-- VIEW 1 & 2: Auth -->
   <div id="view-login" class="view-container">
     <div class="glass-card">
       <h2 class="brand-title">GoLookLike</h2>
-      <p class="subtitle">Il tuo stile, guidato dai dati.</p>
       <input type="email" id="email-input" placeholder="es. nome@email.com" required>
       <button id="btn-send-otp" class="primary-btn">Ricevi Codice OTP</button>
     </div>
   </div>
-
-  <!-- VIEW 2: OTP -->
   <div id="view-otp" class="view-container">
     <div class="glass-card">
       <h2>Verifica Identità</h2>
@@ -58,16 +71,71 @@
     </div>
   </div>
 
-  <!-- VIEW 4: Dashboard -->
-  <div id="view-dashboard" class="view-container">
-    <div class="glass-card">
-      <h2 class="brand-title">GoLookLike</h2>
-      <p id="wardrobe-count" class="subtitle">Capi salvati: 0</p>
-      <button id="btn-generate-outfit" class="primary-btn magic-btn">✨ Genera Outfit</button>
+  <!-- VIEW 4: HOME MINIMAL -->
+  <div id="view-home" class="view-container">
+    <div class="home-minimal">
+      <h1 class="greeting">Ciao Nicolò.</h1>
+      <div id="weather-widget" class="weather-minimal">
+        <span id="weather-temp">--°C</span>
+        <span id="weather-desc" style="font-size: 16px; opacity: 0.8; display: block;">Rilevamento meteo...</span>
+      </div>
+      <button id="btn-start-wizard" class="primary-btn magic-btn" style="margin-top: 20px; font-size: 18px; padding: 20px;">✨ Genera Outfit</button>
+      <button id="btn-open-wardrobe" class="text-btn" style="margin-top: 20px;">Vai al tuo Armadio</button>
     </div>
   </div>
 
-  <!-- Script in ordine logico di dipendenza -->
+  <!-- VIEW 4.5: DASHBOARD ARMADIO -->
+  <div id="view-dashboard" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
+    <h2 class="brand-title">Il tuo Armadio</h2>
+    <p id="wardrobe-count" class="subtitle">Capi salvati: 0</p>
+    <div id="wardrobe-grid" class="wardrobe-grid"></div>
+    <button id="btn-back-home" class="primary-btn" style="margin-top: 20px; max-width: 400px;">Torna alla Home</button>
+  </div>
+
+  <!-- VIEW 5, 6, 7, 8: Wizard e Match (Invariate) -->
+  <div id="view-loading" class="view-container">
+    <div class="loading-wrapper">
+      <div class="spinner-pulse"></div>
+      <h3 style="margin-top: 30px;">Analisi Meteo...</h3>
+    </div>
+  </div>
+
+  <div id="view-wizard-1" class="view-container">
+    <div class="glass-card" style="max-width: 500px;">
+      <h2 style="margin-bottom: 25px;">Dove andiamo?</h2>
+      <div class="grid-options">
+        <button class="context-btn" data-context="Politecnico">📚<br>Politecnico</button>
+        <button class="context-btn" data-context="Moto">🏍️<br>Vitpilen</button>
+        <button class="context-btn" data-context="Sport">🥋<br>Sparring / MMA</button>
+        <button class="context-btn" data-context="Serata">🍻<br>Uscita Serale</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-wizard-2" class="view-container">
+    <div class="glass-card" style="max-width: 500px;">
+      <h2 style="margin-bottom: 25px;">Che stile cerchi?</h2>
+      <div class="grid-options">
+        <button class="style-btn" data-style="Comodo">🛋️<br>Comodo</button>
+        <button class="style-btn" data-style="Elegante">👔<br>Elegante</button>
+        <button class="style-btn" data-style="Streetwear">🛹<br>Streetwear</button>
+        <button class="style-btn" data-style="Tecnico">🛡️<br>Tecnico</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-match" class="view-container">
+    <div class="glass-card match-container">
+      <h2>Il tuo Outfit</h2>
+      <p class="subtitle" id="match-context-desc">Ottimizzato per il tuo contesto</p>
+      <div id="outfit-stack" class="outfit-stack"></div>
+      <div class="swipe-controls" style="margin-top: 30px;">
+        <button id="btn-reset-match" class="text-btn">Rifai</button>
+        <button id="btn-confirm-outfit" class="primary-btn" style="width: auto; padding: 15px 40px;">Indossa</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
