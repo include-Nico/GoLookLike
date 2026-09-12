@@ -17,7 +17,6 @@
   <div id="modal-add" class="modal-overlay">
     <div class="glass-card modal-content" style="max-height: 90vh; overflow-y: auto;">
       <h3 style="margin-top:0;">Nuovo Capo</h3>
-      
       <label class="input-label">Categoria</label>
       <select id="add-type-input" class="glass-select">
         <option value='{"emoji":"👕","nome":"T-shirt","pos":"top"}'>👕 T-shirt</option>
@@ -28,19 +27,15 @@
         <option value='{"emoji":"👟","nome":"Sneakers","pos":"shoes"}'>👟 Sneakers</option>
         <option value='{"emoji":"🥾","nome":"Anfibi/Stivali","pos":"shoes"}'>🥾 Anfibi / Stivali</option>
       </select>
-
       <label class="input-label">Brand</label>
-      <input type="text" id="add-brand-input" list="brands-list" placeholder="Es. Carhartt WIP (Lascia vuoto per Generico)" />
-
+      <input type="text" id="add-brand-input" list="brands-list" placeholder="Es. Carhartt WIP" />
       <label class="input-label">Colore Principale</label>
       <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <input type="color" id="add-color-picker" value="#000000" style="width: 50px; height: 50px; padding: 0; border-radius: 12px; cursor: pointer;">
         <input type="text" id="add-color-hex" value="#000000" style="margin: 0; flex: 1; text-transform: uppercase;" readonly>
       </div>
-
       <label class="input-label">Pesantezza (1 Estate - 4 Inverno)</label>
       <input type="range" id="add-pesantezza-input" min="1" max="4" value="2" style="width: 100%; margin-bottom: 25px;">
-
       <div style="display: flex; gap: 10px;">
         <button id="btn-close-add-modal" class="primary-btn" style="background: var(--secondary-text);">Annulla</button>
         <button id="btn-save-add-modal" class="primary-btn magic-btn">Aggiungi</button>
@@ -69,12 +64,12 @@
   <div id="view-splash" class="view-container active splash-bg">
     <div id="splash-content">
       <h1 id="splash-text">GLL</h1>
-      <p id="session-loader" style="display:none; color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 20px;">Sincronizzazione armadio...</p>
+      <p id="session-loader" style="display:none; color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 20px;">Sincronizzazione in corso...</p>
     </div>
     <div id="particles-container"></div>
   </div>
 
-  <!-- Auth Views -->
+  <!-- Autenticazione -->
   <div id="view-login" class="view-container">
     <div class="glass-card" style="padding-top: 20px;">
       <h2 class="brand-title" style="margin-bottom: 20px;">GoLookLike</h2>
@@ -84,8 +79,8 @@
       </div>
       <div id="register-fields" style="display: none;">
         <div style="display: flex; gap: 10px;">
-          <input type="text" id="nome-input" placeholder="Nome">
-          <input type="text" id="cognome-input" placeholder="Cognome">
+          <input type="text" id="nome-input" placeholder="es. Mario">
+          <input type="text" id="cognome-input" placeholder="es. Rossi">
         </div>
         <select id="sesso-input" class="glass-select">
           <option value="" disabled selected>Seleziona il tuo sesso</option>
@@ -95,6 +90,13 @@
         </select>
       </div>
       <input type="email" id="email-input" placeholder="es. nome@email.com" required>
+      <div class="remember-me-container">
+        <label class="toggle-switch">
+          <input type="checkbox" id="remember-me" checked>
+          <span class="slider"></span>
+        </label>
+        <span>Ricordami su questo dispositivo</span>
+      </div>
       <button id="btn-send-otp" class="primary-btn">Ricevi Codice OTP</button>
     </div>
   </div>
@@ -104,25 +106,11 @@
       <h2>Verifica Identità</h2>
       <p class="subtitle">Codice inviato a: <strong id="otp-email-display"></strong></p>
       <input type="number" id="otp-input" placeholder="123456" maxlength="6">
-      <button id="btn-verify-otp" class="primary-btn">Entra nell'Armadio</button>
+      <button id="btn-verify-otp" class="primary-btn">Entra</button>
     </div>
   </div>
 
-  <!-- Onboarding Swipe -->
-  <div id="view-onboarding" class="view-container">
-    <div class="glass-card onboarding-container">
-      <h2>Popola l'Armadio</h2>
-      <p class="subtitle">Swipe a destra se lo possiedi, a sinistra per scartare.</p>
-      <div id="swipe-deck" class="deck"></div>
-      <div class="swipe-controls">
-        <button id="btn-reject" class="control-btn reject">✕</button>
-        <button id="btn-skip-onboarding" class="text-btn">Salta Onboarding</button>
-        <button id="btn-accept" class="control-btn accept">❤</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Home -->
+  <!-- TAB 1: Home / Generatore -->
   <div id="view-home" class="view-container">
     <div class="home-minimal">
       <h1 class="greeting" id="home-greeting">Ciao.</h1>
@@ -130,41 +118,66 @@
         <span id="weather-temp">--°C</span>
         <span id="weather-desc" style="font-size: 16px; opacity: 0.8; display: block;">Rilevamento meteo...</span>
       </div>
-      <button id="btn-start-wizard" class="primary-btn magic-btn" style="margin-top: 20px; font-size: 18px; padding: 20px;">✨ Genera Outfit</button>
-      <div style="display: flex; gap: 20px; margin-top: 20px;">
-        <button id="btn-open-wardrobe" class="text-btn">Il tuo Armadio</button>
-        <button id="btn-open-laundry" class="text-btn" style="color: var(--reject-color);">Lavanderia (<span id="laundry-count">0</span>)</button>
-      </div>
+      <button id="btn-start-wizard" class="primary-btn magic-btn" style="margin-top: 20px; font-size: 18px; padding: 20px; width: 250px;">✨ Genera Outfit</button>
     </div>
   </div>
 
-  <!-- Dashboard Armadio (Con Filtro Preferiti) -->
+  <!-- TAB 2: Armadio -->
   <div id="view-dashboard" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
-    <h2 class="brand-title">Il tuo Armadio</h2>
+    <h2 class="brand-title">Armadio</h2>
     <p id="wardrobe-count" class="subtitle">Capi pronti: 0</p>
-    
     <div class="auth-tabs" style="width: 100%; max-width: 400px; margin-top: -10px; margin-bottom: 15px;">
       <button id="filter-all" class="auth-tab active">Tutti i Capi</button>
       <button id="filter-favs" class="auth-tab">Preferiti ❤️</button>
     </div>
-
     <div id="wardrobe-grid" class="wardrobe-grid"></div>
-    <button id="btn-back-home" class="primary-btn" style="margin-top: 20px; max-width: 400px;">Torna alla Home</button>
     <button id="btn-add-manual" class="fab-btn">+</button>
   </div>
 
-  <!-- Lavanderia -->
+  <!-- TAB 3: GoLike (Swipe) -->
+  <div id="view-golike" class="view-container">
+    <div class="glass-card onboarding-container">
+      <h2 class="brand-title">GoLike</h2>
+      <p class="subtitle">Scopri e aggiungi nuovi capi al tuo stile.</p>
+      <div id="swipe-deck" class="deck"></div>
+      <div class="swipe-controls">
+        <button id="btn-reject" class="control-btn reject">✕</button>
+        <button id="btn-accept" class="control-btn accept">❤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Profilo & Lavanderia -->
+  <div id="view-profile" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
+    <h2 class="brand-title">Profilo</h2>
+    <div class="glass-card" style="margin-top: 20px; width: 100%; max-width: 400px; padding: 20px;">
+      <div style="font-size: 60px; margin-bottom: 10px;">👤</div>
+      <h3 id="profile-name" style="margin: 0; color: var(--primary-text);">Utente</h3>
+      <p id="profile-email" style="color: var(--secondary-text); margin-top: 5px; font-size: 14px;">email@test.com</p>
+      
+      <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 20px 0;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <span style="font-weight: 600;">Cesti Lavanderia:</span>
+        <span id="laundry-count-badge" style="background: var(--reject-color); color: white; padding: 4px 10px; border-radius: 12px; font-size: 14px; font-weight: bold;">0</span>
+      </div>
+      <button id="btn-open-laundry" class="primary-btn" style="background: rgba(0,0,0,0.05); color: var(--primary-text); margin-bottom: 15px;">Apri Lavanderia</button>
+      
+      <button id="btn-logout" class="text-btn" style="color: var(--reject-color); width: 100%;">Esci dall'Account</button>
+    </div>
+  </div>
+
+  <!-- Lavanderia Vista (Accessibile dal Profilo) -->
   <div id="view-laundry" class="view-container" style="justify-content: flex-start; padding-top: 40px;">
     <h2 class="brand-title">Lavanderia</h2>
     <p class="subtitle">Capi attualmente sporchi o in lavaggio.</p>
     <div id="laundry-grid" class="wardrobe-grid"></div>
     <div style="display: flex; gap: 15px; margin-top: 20px; width: 100%; max-width: 400px;">
-      <button id="btn-laundry-back" class="primary-btn" style="background: var(--secondary-text);">Indietro</button>
       <button id="btn-laundry-reset" class="primary-btn" style="background: var(--accept-color); color: #2d3436;">Svuota Lavatrice</button>
     </div>
   </div>
 
-  <!-- Loading Wizard -->
+  <!-- Componenti Wizard (Invariati) -->
   <div id="view-loading" class="view-container">
     <div class="loading-wrapper">
       <div class="spinner-pulse"></div>
@@ -173,20 +186,18 @@
     </div>
   </div>
 
-  <!-- Wizard Q1 -->
   <div id="view-wizard-1" class="view-container">
     <div class="glass-card" style="max-width: 500px;">
       <h2 style="margin-bottom: 25px;">Dove andiamo?</h2>
       <div class="grid-options">
-        <button class="context-btn" data-context="Politecnico">📚<br>Politecnico</button>
+        <button class="context-btn" data-context="Università">📚<br>Università</button>
         <button class="context-btn" data-context="Lavoro">💼<br>Lavoro</button>
-        <button class="context-btn" data-context="Sport">🥋<br>Sport / Moto</button>
+        <button class="context-btn" data-context="Sport">🥋<br>Sport</button>
         <button class="context-btn" data-context="Serata">🍻<br>Serata</button>
       </div>
     </div>
   </div>
 
-  <!-- Wizard Q2 -->
   <div id="view-wizard-2" class="view-container">
     <div class="glass-card" style="max-width: 500px;">
       <h2 style="margin-bottom: 25px;">Che stile cerchi?</h2>
@@ -199,7 +210,6 @@
     </div>
   </div>
 
-  <!-- Match Result -->
   <div id="view-match" class="view-container">
     <div class="glass-card match-container">
       <h2>Il tuo Outfit</h2>
@@ -214,6 +224,22 @@
       </div>
     </div>
   </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav" id="bottom-nav" style="display: none;">
+    <button class="nav-item active" data-target="view-home" onclick="switchTab(this, 'view-home')">
+      <span style="font-size: 20px; margin-bottom: 2px;">✨</span>Home
+    </button>
+    <button class="nav-item" data-target="view-dashboard" onclick="switchTab(this, 'view-dashboard')">
+      <span style="font-size: 20px; margin-bottom: 2px;">🧥</span>Armadio
+    </button>
+    <button class="nav-item" data-target="view-golike" onclick="switchTab(this, 'view-golike')">
+      <span style="font-size: 20px; margin-bottom: 2px;">🔥</span>GoLike
+    </button>
+    <button class="nav-item" data-target="view-profile" onclick="switchTab(this, 'view-profile')">
+      <span style="font-size: 20px; margin-bottom: 2px;">👤</span>Profilo
+    </button>
+  </nav>
 
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
